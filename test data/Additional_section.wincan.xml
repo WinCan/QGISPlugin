@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><wincanmap><fieldmapping WinCanMappingType="sections"><datafield><wincan>nodeToKey</wincan><map>OBJ_ToNode</map></datafield><datafield><wincan>nodeFromKey</wincan><map>OBJ_FromNo</map></datafield><datafield><wincan>OBJ_Key</wincan><map>Name</map></datafield></fieldmapping></wincanmap>
