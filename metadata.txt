@@ -16,7 +16,7 @@ email=p.paziewski@wincan.com
 
 about=Integrate inspection data between WinCan VX and QGIS. Create WinCan layers, edit shapefiles and transfer data
 
-tracker=https://github.com/WinCan/QGISPlugin
+tracker=https://github.com/WinCan/QGISPlugin/issues
 repository=https://github.com/WinCan/QGISPlugin
 # End of mandatory metadata
 
