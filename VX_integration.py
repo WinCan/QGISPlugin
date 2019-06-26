@@ -594,8 +594,7 @@ class VX:
             self.mapping = Second_window()
             self.dlg.pushButton.clicked.connect(self.connect_pushed)
             self.dlg.pushButton_2.clicked.connect(self.ToVX)
-#             self.dlg.reinitialize.clicked.connect(self.ReinitializeConnection)
-            self.dlg.reinitialize.clicked.connect(self.test)
+            self.dlg.reinitialize.clicked.connect(self.ReinitializeConnection)
 
         
         self.dlg.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) 
