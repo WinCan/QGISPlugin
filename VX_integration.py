@@ -431,17 +431,6 @@ class VX:
         NodeLayer.updateExtents()
         NodeLayer.commitChanges()
         
-    def test(self):
-        
-        pk = "4f8d6329-df8b-493d-a29d-6d45f5d23480"
-        layer = self.created_layers[2]
-        layer.startEditing()
-        request = QgsFeatureRequest().setSubsetOfAttributes(["OBJ_PK"], layer.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % pk)
-        features = layer.getFeatures(request)
-        for f in features:
-            layer.changeAttributeValue(f.id(), layer.fields().indexFromName("OBJ_Key"), "dziala")
-        layer.commitChanges()
-        
 
     def draw_NodeInspections(self,NodeInspections):
         nodeinspection = []
