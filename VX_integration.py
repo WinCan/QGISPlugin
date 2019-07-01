@@ -579,8 +579,10 @@ class VX:
                     l.removeSelection()
         request = QgsFeatureRequest().setSubsetOfAttributes(["OBJ_PK"], layer.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % feature.Id)
         features = layer.getFeatures(request)
+        
         for f in features:
             layer.select(f.id())
+            
         box = layer.boundingBoxOfSelected()
         mc.setExtent(box)
         mc.refresh()
