@@ -418,7 +418,7 @@ class VX:
                 feature.setFields(self.fields[2])
                 if (type(point) != type(None)):
                     layerPoint = QgsPointXY(point.X, point.Y)
-                feature.setGeometry(QgsGeometry.fromPointXY(layerPoint))
+                    feature.setGeometry(QgsGeometry.fromPointXY(layerPoint))
                 self.Add_values(feature, node, self.vxConnector.LayerFieldsPovider.NodeShapeFields)
                 points.append(feature)
                 node.ExternalItemId = nr
