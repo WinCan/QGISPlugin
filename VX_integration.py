@@ -373,23 +373,40 @@ class VX:
         InspectionLayer.commitChanges()   
  
     def draw_Sections(self,Sections):
+        nr = 1
         sections = []
         SectionLayer = self.created_layers[1]
         SectionLayer.startEditing()
         prov = SectionLayer.dataProvider()
-        for section in Sections:
-            points = []
-            feature = QgsFeature()
-            feature.setFields(self.fields[1])
-            for point in section.Vertices:
-                points.append(QgsPointXY(point.X, point.Y))
-            feature.setGeometry(QgsGeometry.fromPolylineXY(points))
-            self.Add_values(feature, section, self.vxConnector.LayerFieldsPovider.SectionShapeFields)
-            sections.append(feature)
-                
-        prov.addFeatures(sections)
         
-        SectionLayer.loadNamedStyle(self.plugin_dir + '\\Styles\\style_section.qml')
+        if SectionLayer == None:
+            return
+        
+        for section in Sections:
+            
+            if section.ExternalItemId != 0:
+                request = QgsFeatureRequest().setSubsetOfAttributes(["OBJ_PK"], SectionLayer.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % section.Id)
+                features = SectionLayer.getFeatures(request)
+                for f in features:
+                        for value in self.vxConnector.LayerFieldsPovider.SectionShapeFields:
+                            attr = SectionLayer.fields().indexFromName(str(value.Key))
+                            SectionLayer.changeAttributeValue(f.id(), attr, str(section.GetValue(value)))
+            else:
+                points = []
+                feature = QgsFeature()
+                feature.setFields(self.fields[1])
+                for point in section.Vertices:
+                    points.append(QgsPointXY(point.X, point.Y))
+                feature.setGeometry(QgsGeometry.fromPolylineXY(points))
+                self.Add_values(feature, section, self.vxConnector.LayerFieldsPovider.SectionShapeFields)
+                sections.append(feature)
+                section.ExternalItemId = nr
+                nr += 1
+         
+        if points != []:        
+            prov.addFeatures(sections)
+            SectionLayer.loadNamedStyle(self.plugin_dir + '\\Styles\\style_section.qml')
+            
         SectionLayer.updateExtents()
         SectionLayer.commitChanges()   
 
