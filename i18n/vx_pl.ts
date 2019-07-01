@@ -2,17 +2,69 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="pl_PL" sourcelanguage="en">
 <context>
+    <name>TransferToWinCan</name>
+    <message>
+        <location filename="../toVXTransfer.py" line="81"/>
+        <source>Shape is missing Reference to WinCan VX</source>
+        <translation>Brak referencji do WinCan VX</translation>
+    </message>
+    <message>
+        <location filename="../toVXTransfer.py" line="120"/>
+        <source>Please select layer to transfer</source>
+        <translation>Proszę wybrać warstwę do transferu</translation>
+    </message>
+    <message>
+        <location filename="../toVXTransfer.py" line="124"/>
+        <source>Transfer feature is not available for WinCan layers</source>
+        <translation>Nie można transferować warstw WinCan</translation>
+    </message>
+    <message>
+        <location filename="../toVXTransfer.py" line="128"/>
+        <source>Missing connection to WinCan VX</source>
+        <translation>Brak połączenia z WinCan VX</translation>
+    </message>
+    <message>
+        <location filename="../toVXTransfer.py" line="132"/>
+        <source>Please select shapes to transfer</source>
+        <translation>Proszę wybrać elementy do transferu</translation>
+    </message>
+</context>
+<context>
     <name>VX</name>
     <message>
         <location filename="../VX_integration.py" line="149"/>
         <source>&amp;WinCan VX integration</source>
-        <translatorcomment>Integracja z WinCan VX</translatorcomment>
         <translation>Integracja z WinCan VX</translation>
     </message>
     <message>
         <location filename="../VX_integration.py" line="137"/>
         <source>Open dialog</source>
         <translation>Otwórz okienko</translation>
+    </message>
+    <message>
+        <location filename="../VX_integration.py" line="190"/>
+        <source>Section</source>
+        <translation>Sekcja</translation>
+    </message>
+    <message>
+        <location filename="../VX_integration.py" line="191"/>
+        <source>Manhole</source>
+        <translation>Studnia</translation>
+    </message>
+    <message>
+        <location filename="../VX_integration.py" line="248"/>
+        <source>None</source>
+        <translation>Brak</translation>
+    </message>
+    <message>
+        <location filename="../VX_integration.py" line="522"/>
+        <source>Connected!</source>
+        <translation>Połączono!</translation>
+    </message>
+    <message>
+        <location filename="../VX_integration.py" line="524"/>
+        <source>The connection has not been established</source>
+        <translation>Połączenie nie zostało ustanowione</translation>
     </message>
 </context>
 <context>
