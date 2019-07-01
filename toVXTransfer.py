@@ -59,7 +59,7 @@ class selection:
             
 class TransferToWinCan:
     
-    def tr(self, message):
+    def tr(message):
 
         return QCoreApplication.translate('TransferToWinCan', message)
   
@@ -78,7 +78,7 @@ class TransferToWinCan:
         fields = dict()
         
         if (currentshape.TagPointer is Null):
-            VX.show_error(self.tr("Shape is missing Reference to WinCan VX"))
+            VX.show_error(TransferToWinCan.tr("Shape is missing Reference to WinCan VX"))
               
         if (currentshape.TagPointer is section):
             type = EntityType.Section
@@ -117,19 +117,19 @@ class TransferToWinCan:
         
         
         if (layer is None):
-            VX.show_warning(self.tr("Please select layer to transfer"))
+            VX.show_warning(TransferToWinCan.tr("Please select layer to transfer"))
             return False
 
         if (TransferToWinCan.IsWinCanLayer(VX, layer)):
-            VX.show_warning(self.tr("Transfer feature is not available for WinCan layers"))
+            VX.show_warning(TransferToWinCan.tr("Transfer feature is not available for WinCan layers"))
             return False
  
         if not VX.vxConnector.IsConnected:
-            VX.show_warning(self.tr("Missing connection to WinCan VX"))
+            VX.show_warning(TransferToWinCan.tr("Missing connection to WinCan VX"))
             return False
  
         if (select.Count == 0):
-            VX.show_warning(self.tr("Please select shapes to transfer"))
+            VX.show_warning(TransferToWinCan.tr("Please select shapes to transfer"))
             return False
         
   
