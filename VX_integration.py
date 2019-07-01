@@ -548,13 +548,19 @@ class VX:
     def connect_pushed(self):
 
         self.check_if_connected()
-        if self.vxConnector.IsConnected and self.i==0:  
-                if not self.layers_created:
-                    self.create_layers(self.vxConnector.Project.CoordinateSystem)
-                self.DownloadVxData()
-                self.dlg.pushButton_2.setEnabled(True)
-                self.dlg.reinitialize.setEnabled(True)
-                self.i += 1
+        if self.vxConnector.IsConnected and self.i==0:
+                if type(self.vxConnector.Project) != type(None):  
+                    if not self.layers_created:
+                        self.create_layers(self.vxConnector.Project.CoordinateSystem)
+                        
+                    self.DownloadVxData()
+                    self.dlg.pushButton_2.setEnabled(True)
+                    self.dlg.reinitialize.setEnabled(True)
+                    self.i += 1
+                
+                else:
+                    self.show_error(self.tr("Connection failed! - Please try again"))
+                
             
     def ToVX(self):
         TransferToWinCan.Transfer(self)
