@@ -93,8 +93,6 @@ class VX:
         
         self.first_start_mapping = True
         
-        self.threadpool = QThreadPool()
-        
     def tr(self, message):
         """Get the translation for a string using Qt translation API. """
 
@@ -248,15 +246,20 @@ class VX:
         return names
     
     def UpdateProject(self, project):
-        a=11
+        if type(project) != type(None):
+            self.dlg.textBrowser.setText(str(project.Key))
+        else:
+            self.dlg.textBrowser.setText(self.tr("None"))
              
     def UpdateVxData(self, source, args):
         self.package = source.GetUpdated()
+        C_Button = self.dlg.pushButton
+        C_Button.setEnabled(True)
+            
         package = self.package
         if (package.IsEmpty == 1):
             return
-        else:
-#             self.dlg.textBrowser.setText(self.package.Project.Key)      
+        else: 
             if package.Nodes.Count > 0:
                 self.draw_Nodes(package.Nodes)
             if package.Sections.Count > 0:
@@ -269,6 +272,9 @@ class VX:
                 self.draw_NodeObservations(package.NodeObservations)
             if package.Inspections.Count > 0:
                 self.draw_Inspections(package.Inspections) 
+                
+        canvas = self.iface.mapCanvas()
+        canvas.zoomToFullExtent()   
                   
    
             
@@ -563,7 +569,7 @@ class VX:
         canvas = self.iface.mapCanvas()
         canvas.zoomToFullExtent()
         
-#         self.UpdateProject(self.vxConnector.Project)
+        self.UpdateProject(self.vxConnector.Project)
         
         
     def connect_pushed(self):
@@ -653,7 +659,7 @@ class VX:
             vxConnector.EntitySelectedInVx += EventHandler(self.EntitySelectedInVx)
             self.vxConnector.StartCommunication()
             
-            self.first_start = False
+            
             self.dlg = VXDialog()
             self.dlg.button_box.button(QDialogButtonBox.Ok).setIcon((QIcon(self.plugin_dir + "\\Icons\\OK.png")))
             self.dlg.button_box.button(QDialogButtonBox.Ok).setIconSize(QtCore.QSize(16, 16))
@@ -663,6 +669,9 @@ class VX:
             self.dlg.pushButton.clicked.connect(self.connect_pushed)
             self.dlg.pushButton_2.clicked.connect(self.ToVX)
             self.dlg.reinitialize.clicked.connect(self.ReinitializeConnection)
+            self.first_start = False
+            
+            
             
 
         
@@ -670,6 +679,7 @@ class VX:
         self.dlg.show()
 
         result = self.dlg.exec_()
+        
              
         if result:
             pass
