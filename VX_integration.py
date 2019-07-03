@@ -661,10 +661,10 @@ class VX:
             
             
             self.dlg = VXDialog()
-            self.dlg.button_box.button(QDialogButtonBox.Ok).setIcon((QIcon(self.plugin_dir + "\\Icons\\OK.png")))
-            self.dlg.button_box.button(QDialogButtonBox.Ok).setIconSize(QtCore.QSize(16, 16))
-            self.dlg.button_box.button(QDialogButtonBox.Cancel).setIcon((QIcon(self.plugin_dir + "\\Icons\\cancel.png")))
-            self.dlg.button_box.button(QDialogButtonBox.Cancel).setIconSize(QtCore.QSize(16, 16))
+            self.dlg.button_box.button(QDialogButtonBox.Close).setIcon((QIcon(self.plugin_dir + "\\Icons\\OK.png")))
+            self.dlg.button_box.button(QDialogButtonBox.Close).setIconSize(QtCore.QSize(16, 16))
+#             self.dlg.button_box.button(QDialogButtonBox.Cancel).setIcon((QIcon(self.plugin_dir + "\\Icons\\cancel.png")))
+#             self.dlg.button_box.button(QDialogButtonBox.Cancel).setIconSize(QtCore.QSize(16, 16))
             self.mapping = Second_window()
             self.dlg.pushButton.clicked.connect(self.connect_pushed)
             self.dlg.pushButton_2.clicked.connect(self.ToVX)
