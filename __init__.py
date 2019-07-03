@@ -9,7 +9,6 @@
         begin                : 2019-05-17
         copyright            : (C) 2019 by WinCan Poland
         email                : p.paziewski@wincan.com
-        git sha              : $Format:%H$
  ***************************************************************************/
 
 /***************************************************************************
@@ -22,19 +21,39 @@
  ***************************************************************************/
  This script initializes the plugin, making it known to QGIS.
 """
+
+
 import sys
 import os.path
+try:
+    import clr
+except ImportError:
+    raise ImportError('Please install pythonnet!')
 from ctypes import cdll, windll
 vx_assembly_path = os.environ["ProgramFiles(x86)"] + "\CDLAB\Assemblies"
-sys.path.append(vx_assembly_path.rstrip())
-windll.LoadLibrary(vx_assembly_path + "\libsodium.dll")
 
-import clr
+try:
+    vx_assembly_path = os.environ["ProgramFiles(x86)"] + "\CDLAB\Assemblies"
+    sys.path.append(vx_assembly_path.rstrip())
+    windll.LoadLibrary(vx_assembly_path + "\libsodium.dll")
+    clr.AddReference("ZeroMQ")
+    clr.AddReference("CDLAB.WinCan.MQ")
+    clr.AddReference("CDLAB.WinCan.SDK.GIS")
+    clr.AddReference("CDLAB.WinCan.SDK.GIS.UI")
+    clr.AddReference("CDLAB.WinCan.Template")
+except OSError:
+    raise OSError('Please install WinCan VX!')
+
+
+
+
 clr.AddReference("ZeroMQ")
 clr.AddReference("CDLAB.WinCan.MQ")
 clr.AddReference("CDLAB.WinCan.SDK.GIS")
 clr.AddReference("CDLAB.WinCan.SDK.GIS.UI")
 clr.AddReference("CDLAB.WinCan.Template")
+
+
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
