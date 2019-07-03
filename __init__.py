@@ -22,7 +22,19 @@
  ***************************************************************************/
  This script initializes the plugin, making it known to QGIS.
 """
+import sys
+import os.path
+from ctypes import cdll, windll
+vx_assembly_path = os.environ["ProgramFiles(x86)"] + "\CDLAB\Assemblies"
+sys.path.append(vx_assembly_path.rstrip())
+windll.LoadLibrary(vx_assembly_path + "\libsodium.dll")
 
+import clr
+clr.AddReference("ZeroMQ")
+clr.AddReference("CDLAB.WinCan.MQ")
+clr.AddReference("CDLAB.WinCan.SDK.GIS")
+clr.AddReference("CDLAB.WinCan.SDK.GIS.UI")
+clr.AddReference("CDLAB.WinCan.Template")
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name

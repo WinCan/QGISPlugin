@@ -11,35 +11,23 @@
  ***************************************************************************/
 """
 
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication,QTimer, QVariant, QThread, pyqtSignal, QThreadPool, QRunnable, QObject
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QTimer, QVariant, QThread, pyqtSignal, QThreadPool, QRunnable, QObject
 from PyQt5.QtGui import QIcon, QPixmap, QMovie
 from PyQt5.QtWidgets import QAction, QWidget, QTableWidgetItem, QDialogButtonBox, QProgressBar
-from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField,QgsVectorFileWriter, QgsWkbTypes, QgsCoordinateReferenceSystem,QgsFeature,QgsPointXY,QgsGeometry,QgsPalLayerSettings, QgsFeatureRequest
+from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField, QgsVectorFileWriter, QgsWkbTypes, QgsCoordinateReferenceSystem, QgsFeature, QgsPointXY, QgsGeometry, QgsPalLayerSettings, QgsFeatureRequest
 from .resources import *
 from .VX_integration_dialog import VXDialog
 from .Second_window_dialog import Second_window
-import sys
 import os.path
 import time
 import uuid
 import array
 import numpy
 import shutil
-import threading
 import traceback
 import timeit
 from .toVXTransfer import TransferToWinCan
 from datetime import datetime
-from ctypes import cdll, windll
-sys.path.append((os.path.dirname(__file__)+ "\DLL").rstrip())
-windll.LoadLibrary(os.path.dirname(__file__)+ "\DLL\libsodium.dll")
-
-import clr
-clr.AddReference("ZeroMQ")
-clr.AddReference("CDLAB.WinCan.MQ")
-clr.AddReference("CDLAB.WinCan.SDK.GIS")
-clr.AddReference("CDLAB.WinCan.SDK.GIS.UI")
-clr.AddReference("CDLAB.WinCan.Template")
 import ZeroMQ
 from CDLAB.WinCan.SDK.GIS import ConnectedApplicationType, EntityType
 import CDLAB.WinCan.MQ
@@ -49,13 +37,9 @@ from System.Threading import SynchronizationContext
 from System.Threading.Tasks import TaskScheduler
 from System.IO import FileInfo
 from System import Environment, EventHandler
-
-
            
                 
 class VX:
-
-
 
     def __init__(self, iface):
         self.i = 0
@@ -85,7 +69,7 @@ class VX:
         self.first_start = None
         self.timer = QTimer()
         
-        self.vxConnector =  CDLAB.WinCan.SDK.GIS.VxConnector("QGIS " + str(uuid.uuid4()), CDLAB.WinCan.SDK.GIS.ConnectedApplicationType.WinCanMap)
+        self.vxConnector = CDLAB.WinCan.SDK.GIS.VxConnector("QGIS " + str(uuid.uuid4()), CDLAB.WinCan.SDK.GIS.ConnectedApplicationType.WinCanMap)
         
         self.MappedFields = dict()
                 
@@ -143,7 +127,6 @@ class VX:
             text=self.tr(u'Open dialog'),
             callback=self.run,
             parent=self.iface.mainWindow())
-    
 
         self.first_start = True
         
@@ -169,14 +152,14 @@ class VX:
         
     def remove_row(self):
         if self.mapping.tableWidget.currentRow() != -1 and self.mapping.tableWidget.rowCount() > 0:
-            self.mapping.listWidget.addItem(self.mapping.tableWidget.item(self.mapping.tableWidget.currentRow(),0).text())
-            self.mapping.listWidget_2.addItem(self.mapping.tableWidget.item(self.mapping.tableWidget.currentRow(),1).text())
+            self.mapping.listWidget.addItem(self.mapping.tableWidget.item(self.mapping.tableWidget.currentRow(), 0).text())
+            self.mapping.listWidget_2.addItem(self.mapping.tableWidget.item(self.mapping.tableWidget.currentRow(), 1).text())
             self.mapping.tableWidget.removeRow(self.mapping.tableWidget.currentRow())
             
     def save_mapping_info(self):
         row = 0
         while row < self.mapping.tableWidget.rowCount():
-            self.MappedFields[self.mapping.tableWidget.item(row,0).text()] = self.mapping.tableWidget.item(row,1).text()
+            self.MappedFields[self.mapping.tableWidget.item(row, 0).text()] = self.mapping.tableWidget.item(row, 1).text()
             row += 1
         
     def MapingComboBox(self):
@@ -275,8 +258,6 @@ class VX:
                 
         canvas = self.iface.mapCanvas()
         canvas.zoomToFullExtent()   
-                  
-   
             
     def DeleteFeatures(self, toDelete, FeatureClass):
          
@@ -327,13 +308,12 @@ class VX:
             EPSG = QgsCoordinateReferenceSystem()
         else:
             EPSG = QgsCoordinateReferenceSystem.fromEpsgId(int(WKT.split("\"")[-2]))
-        Layers = [InspectionLayerName,SectionLayerName,NodeLayerName,NodeInspectionLayerName,NodeObservationLayerName,ObservationLayerName]
+        Layers = [InspectionLayerName, SectionLayerName, NodeLayerName, NodeInspectionLayerName, NodeObservationLayerName, ObservationLayerName]
         LFP = self.vxConnector.LayerFieldsPovider
-        ShapeFields = [LFP.InspectionShapeFields,LFP.SectionShapeFields,LFP.NodeShapeFields,LFP.NodeInspectionShapeFields,LFP.NodeObservationShapeFields,LFP.ObservationShapeFields]
+        ShapeFields = [LFP.InspectionShapeFields, LFP.SectionShapeFields, LFP.NodeShapeFields, LFP.NodeInspectionShapeFields, LFP.NodeObservationShapeFields, LFP.ObservationShapeFields]
         self.created_layers = []
         self.fields = []
         nr = 0
-
         
         for layer in Layers:
             layer_full_path = layers_path + "\\" + layer + ".shp"
@@ -354,12 +334,11 @@ class VX:
                              "ESRI Shapefile")
             temp = QgsVectorLayer(layer_full_path , layer, 'ogr')
             self.created_layers.append(temp)
-            nr +=1
+            nr += 1
         
         QCoreApplication.processEvents()
         QgsProject.instance().addMapLayers(self.created_layers)
         self.layers_created = True
-
     
     def Add_values(self, feature, entity, shapefields):
             for attribute in feature.fields():
@@ -367,7 +346,7 @@ class VX:
                     attr = feature.fieldNameIndex(value.Key)
                     feature.setAttribute(attr, str(entity.GetValue(value)))
 
-    def draw_Inspections(self,Inspections):
+    def draw_Inspections(self, Inspections):
         QCoreApplication.processEvents()
         inspections = []
         InspectionLayer = self.created_layers[0]
@@ -388,7 +367,7 @@ class VX:
         InspectionLayer.commitChanges() 
         QCoreApplication.processEvents()  
  
-    def draw_Sections(self,Sections):
+    def draw_Sections(self, Sections):
         QCoreApplication.processEvents()
         nr = 1
         sections = []
@@ -428,7 +407,7 @@ class VX:
         SectionLayer.commitChanges() 
         QCoreApplication.processEvents()  
 
-    def draw_Nodes(self,Nodes):
+    def draw_Nodes(self, Nodes):
         QCoreApplication.processEvents()
         nr = 1
         points = []
@@ -467,9 +446,8 @@ class VX:
         NodeLayer.updateExtents()
         NodeLayer.commitChanges()
         QCoreApplication.processEvents()
-        
 
-    def draw_NodeInspections(self,NodeInspections):
+    def draw_NodeInspections(self, NodeInspections):
         QCoreApplication.processEvents()
         nodeinspection = []
         NodeInspectionLayer = self.created_layers[3]
@@ -490,7 +468,7 @@ class VX:
         NodeInspectionLayer.commitChanges()  
         QCoreApplication.processEvents() 
         
-    def draw_NodeObservations(self,NodeObservation):
+    def draw_NodeObservations(self, NodeObservation):
         QCoreApplication.processEvents()
         points = []
         NodeObservationLayer = self.created_layers[4]
@@ -512,7 +490,7 @@ class VX:
         NodeObservationLayer.commitChanges()
         QCoreApplication.processEvents()
         
-    def draw_Observations(self,Observations):
+    def draw_Observations(self, Observations):
         QCoreApplication.processEvents()
         points = []
         ObservationLayer = self.created_layers[5]
@@ -564,18 +542,16 @@ class VX:
         self.draw_NodeObservations(NodeObservations)
         self.draw_Inspections(Inspections)
         self.draw_NodeInspections(NodeInspections)
-            
         
         canvas = self.iface.mapCanvas()
         canvas.zoomToFullExtent()
         
         self.UpdateProject(self.vxConnector.Project)
         
-        
     def connect_pushed(self):
         self.dlg.loading.setMovie(self.movie)
         self.movie.start()
-        if self.vxConnector.IsConnected and self.i==0:
+        if self.vxConnector.IsConnected and self.i == 0:
                 if type(self.vxConnector.Project) != type(None): 
                     self.show_info(self.tr("Connected!")) 
                     if not self.layers_created:
@@ -607,7 +583,6 @@ class VX:
 #           worker.started.connect(self.movie.start)
 #           worker.finished.connect(self.movie.stop)
 #           worker.start()
-
         
     def ToVX(self):
         TransferToWinCan.Transfer(self)
@@ -615,16 +590,14 @@ class VX:
     def ClearVXData(self):
         for layer in self.iface.mapCanvas().layers():
             listOfIds = [feat.id() for feat in layer.getFeatures()]
-            layer.dataProvider().deleteFeatures( listOfIds )
+            layer.dataProvider().deleteFeatures(listOfIds)
 
     def ReinitializeConnection(self):
         self.ClearVXData()
         self.vxConnector.StopCommunication()
         self.vxConnector.StartCommunication()
 
-         
-
-    def SelectFeature(self,feature, layer):
+    def SelectFeature(self, feature, layer):
         
         mc = self.iface.mapCanvas()
         for l in mc.layers():
@@ -652,13 +625,12 @@ class VX:
     def run(self):
           
         if self.first_start == True:
-            self.movie=QMovie(self.plugin_dir + "\\Icons\\buffer.gif")
+            self.movie = QMovie(self.plugin_dir + "\\Icons\\buffer.gif")
             vxConnector = self.vxConnector
             vxConnector.UpdateReady += EventHandler(self.UpdateVxData)
             vxConnector.DeletedEntites += EventHandler(self.OnDeletedEntites)
             vxConnector.EntitySelectedInVx += EventHandler(self.EntitySelectedInVx)
             self.vxConnector.StartCommunication()
-            
             
             self.dlg = VXDialog()
             self.dlg.button_box.button(QDialogButtonBox.Close).setIcon((QIcon(self.plugin_dir + "\\Icons\\OK.png")))
@@ -670,24 +642,13 @@ class VX:
             self.dlg.pushButton_2.clicked.connect(self.ToVX)
             self.dlg.reinitialize.clicked.connect(self.ReinitializeConnection)
             self.first_start = False
-            
-            
-            
-
         
         self.dlg.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) 
         self.dlg.show()
 
         result = self.dlg.exec_()
-        
              
         if result:
             pass
 
-        
-        
-        
-        
-        
-        
-        
+
