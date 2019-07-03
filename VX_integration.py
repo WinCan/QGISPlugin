@@ -11,9 +11,9 @@
  ***************************************************************************/
 """
 
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication,QTimer, QVariant
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QAction, QWidget, QTableWidgetItem, QDialogButtonBox
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication,QTimer, QVariant, QThread, pyqtSignal, QThreadPool, QRunnable, QObject
+from PyQt5.QtGui import QIcon, QPixmap, QMovie
+from PyQt5.QtWidgets import QAction, QWidget, QTableWidgetItem, QDialogButtonBox, QProgressBar
 from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField,QgsVectorFileWriter, QgsWkbTypes, QgsCoordinateReferenceSystem,QgsFeature,QgsPointXY,QgsGeometry,QgsPalLayerSettings, QgsFeatureRequest
 from .resources import *
 from .VX_integration_dialog import VXDialog
@@ -25,6 +25,9 @@ import uuid
 import array
 import numpy
 import shutil
+import threading
+import traceback
+import timeit
 from .toVXTransfer import TransferToWinCan
 from datetime import datetime
 from ctypes import cdll, windll
@@ -48,7 +51,8 @@ from System.IO import FileInfo
 from System import Environment, EventHandler
 
 
-    
+           
+                
 class VX:
 
 
@@ -88,7 +92,9 @@ class VX:
         self.layers_created = False
         
         self.first_start_mapping = True
-
+        
+        self.threadpool = QThreadPool()
+        
     def tr(self, message):
         """Get the translation for a string using Qt translation API. """
 
@@ -242,16 +248,15 @@ class VX:
         return names
     
     def UpdateProject(self, project):
-        if type(project) != type(None):
-            self.dlg.textBrowser.setText(str(self.vxConnector.Project.Key))
-        else:
-            self.dlg.textBrowser.setText(self.tr("None"))
+        a=11
              
     def UpdateVxData(self, source, args):
-        package = source.GetUpdated()
+        self.package = source.GetUpdated()
+        package = self.package
         if (package.IsEmpty == 1):
             return
         else:
+#             self.dlg.textBrowser.setText(self.package.Project.Key)      
             if package.Nodes.Count > 0:
                 self.draw_Nodes(package.Nodes)
             if package.Sections.Count > 0:
@@ -263,8 +268,9 @@ class VX:
             if package.NodeObservations.Count > 0:
                 self.draw_NodeObservations(package.NodeObservations)
             if package.Inspections.Count > 0:
-                self.draw_Inspections(package.Inspections)       
-#             self.UpdateProject(package.Project)   
+                self.draw_Inspections(package.Inspections) 
+                  
+   
             
     def DeleteFeatures(self, toDelete, FeatureClass):
          
@@ -343,9 +349,11 @@ class VX:
             temp = QgsVectorLayer(layer_full_path , layer, 'ogr')
             self.created_layers.append(temp)
             nr +=1
-            
+        
+        QCoreApplication.processEvents()
         QgsProject.instance().addMapLayers(self.created_layers)
         self.layers_created = True
+
     
     def Add_values(self, feature, entity, shapefields):
             for attribute in feature.fields():
@@ -354,6 +362,7 @@ class VX:
                     feature.setAttribute(attr, str(entity.GetValue(value)))
 
     def draw_Inspections(self,Inspections):
+        QCoreApplication.processEvents()
         inspections = []
         InspectionLayer = self.created_layers[0]
         InspectionLayer.startEditing()
@@ -370,9 +379,11 @@ class VX:
                 
         prov.addFeatures(inspections)
         InspectionLayer.updateExtents()
-        InspectionLayer.commitChanges()   
+        InspectionLayer.commitChanges() 
+        QCoreApplication.processEvents()  
  
     def draw_Sections(self,Sections):
+        QCoreApplication.processEvents()
         nr = 1
         sections = []
         SectionLayer = self.created_layers[1]
@@ -408,9 +419,11 @@ class VX:
             SectionLayer.loadNamedStyle(self.plugin_dir + '\\Styles\\style_section.qml')
             
         SectionLayer.updateExtents()
-        SectionLayer.commitChanges()   
+        SectionLayer.commitChanges() 
+        QCoreApplication.processEvents()  
 
     def draw_Nodes(self,Nodes):
+        QCoreApplication.processEvents()
         nr = 1
         points = []
         NodeLayer = self.created_layers[2]
@@ -447,9 +460,11 @@ class VX:
             
         NodeLayer.updateExtents()
         NodeLayer.commitChanges()
+        QCoreApplication.processEvents()
         
 
     def draw_NodeInspections(self,NodeInspections):
+        QCoreApplication.processEvents()
         nodeinspection = []
         NodeInspectionLayer = self.created_layers[3]
         NodeInspectionLayer.startEditing()
@@ -466,9 +481,11 @@ class VX:
                 
         prov.addFeatures(nodeinspection)
         NodeInspectionLayer.updateExtents()
-        NodeInspectionLayer.commitChanges()   
+        NodeInspectionLayer.commitChanges()  
+        QCoreApplication.processEvents() 
         
     def draw_NodeObservations(self,NodeObservation):
+        QCoreApplication.processEvents()
         points = []
         NodeObservationLayer = self.created_layers[4]
         NodeObservationLayer.startEditing()
@@ -487,8 +504,10 @@ class VX:
         NodeObservationLayer.loadNamedStyle(self.plugin_dir + '\\Styles\\style_NodeObs.qml')
         NodeObservationLayer.updateExtents()
         NodeObservationLayer.commitChanges()
+        QCoreApplication.processEvents()
         
     def draw_Observations(self,Observations):
+        QCoreApplication.processEvents()
         points = []
         ObservationLayer = self.created_layers[5]
         ObservationLayer.startEditing()
@@ -507,6 +526,7 @@ class VX:
         ObservationLayer.loadNamedStyle(self.plugin_dir + '\\Styles\\style_obs.qml')
         ObservationLayer.updateExtents()
         ObservationLayer.commitChanges()
+        QCoreApplication.processEvents()
         
     def show_error(self, message):
         self.iface.messageBar().pushMessage("ERROR: " + message, level=Qgis.Critical)
@@ -543,13 +563,15 @@ class VX:
         canvas = self.iface.mapCanvas()
         canvas.zoomToFullExtent()
         
-        self.UpdateProject(self.vxConnector.Project)
+#         self.UpdateProject(self.vxConnector.Project)
+        
         
     def connect_pushed(self):
-
-        self.check_if_connected()
+        self.dlg.loading.setMovie(self.movie)
+        self.movie.start()
         if self.vxConnector.IsConnected and self.i==0:
-                if type(self.vxConnector.Project) != type(None):  
+                if type(self.vxConnector.Project) != type(None): 
+                    self.show_info(self.tr("Connected!")) 
                     if not self.layers_created:
                         self.create_layers(self.vxConnector.Project.CoordinateSystem)
                         
@@ -557,11 +579,30 @@ class VX:
                     self.dlg.pushButton_2.setEnabled(True)
                     self.dlg.reinitialize.setEnabled(True)
                     self.i += 1
-                
-                else:
-                    self.show_error(self.tr("Connection failed! - Please try again"))
-                
-            
+        else:
+            self.show_error(self.tr("Connection failed! - Please try again"))
+        
+        self.movie.stop()
+        self.dlg.loading.clear()
+        
+#     def loading(self, value):
+#         if value == 2:
+#             self.movie.start()
+#         elif value == 1:
+#             self.movie.stop()
+#  
+#          
+#     def connect_pushed(self):
+#          
+#         worker = External(self.initialization)
+#         self.threadpool.start(worker)
+#         worker.signals.error.connect(self.show_info)
+#           worker.signal.connect(self.loading)
+#           worker.started.connect(self.movie.start)
+#           worker.finished.connect(self.movie.stop)
+#           worker.start()
+
+        
     def ToVX(self):
         TransferToWinCan.Transfer(self)
          
@@ -571,11 +612,11 @@ class VX:
             layer.dataProvider().deleteFeatures( listOfIds )
 
     def ReinitializeConnection(self):
-        
         self.ClearVXData()
         self.vxConnector.StopCommunication()
         self.vxConnector.StartCommunication()
-        
+
+         
 
     def SelectFeature(self,feature, layer):
         
@@ -605,11 +646,13 @@ class VX:
     def run(self):
           
         if self.first_start == True:
+            self.movie=QMovie(self.plugin_dir + "\\Icons\\buffer.gif")
             vxConnector = self.vxConnector
             vxConnector.UpdateReady += EventHandler(self.UpdateVxData)
             vxConnector.DeletedEntites += EventHandler(self.OnDeletedEntites)
             vxConnector.EntitySelectedInVx += EventHandler(self.EntitySelectedInVx)
             self.vxConnector.StartCommunication()
+            
             self.first_start = False
             self.dlg = VXDialog()
             self.dlg.button_box.button(QDialogButtonBox.Ok).setIcon((QIcon(self.plugin_dir + "\\Icons\\OK.png")))
@@ -620,6 +663,7 @@ class VX:
             self.dlg.pushButton.clicked.connect(self.connect_pushed)
             self.dlg.pushButton_2.clicked.connect(self.ToVX)
             self.dlg.reinitialize.clicked.connect(self.ReinitializeConnection)
+            
 
         
         self.dlg.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) 
@@ -627,6 +671,13 @@ class VX:
 
         result = self.dlg.exec_()
              
-        
         if result:
             pass
+
+        
+        
+        
+        
+        
+        
+        
