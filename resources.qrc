@@ -5,5 +5,6 @@
         <file alias="Close">Icons/close.png</file>
         <file alias="OK">Icons/OK.png</file>
         <file alias="Background">Icons/wincan-vx-box.png</file>
+        <file alias="buffer">Icons/buffer.gif</file>
     </qresource>
 </RCC>
