@@ -11,29 +11,18 @@
  ***************************************************************************/
 """
 
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication,QTimer, QVariant
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QTimer, QVariant
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction
-from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField,QgsVectorFileWriter, QgsWkbTypes, QgsCoordinateReferenceSystem,QgsFeature,QgsPointXY,QgsGeometry,QgsPalLayerSettings, QgsFeatureRequest
+from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField, QgsVectorFileWriter, QgsWkbTypes, QgsCoordinateReferenceSystem, QgsFeature, QgsPointXY, QgsGeometry, QgsPalLayerSettings, QgsFeatureRequest
 from .resources import *
 from .VX_integration_dialog import VXDialog
-import sys
 import os.path
 import time
 import uuid
 import array
 import numpy
 from datetime import datetime
-from ctypes import cdll, windll
-sys.path.append((os.path.dirname(__file__)+ "\DLL").rstrip())
-windll.LoadLibrary(os.path.dirname(__file__)+ "\DLL\libsodium.dll")
-
-import clr
-clr.AddReference("ZeroMQ")
-clr.AddReference("CDLAB.WinCan.MQ")
-clr.AddReference("CDLAB.WinCan.SDK.GIS")
-clr.AddReference("CDLAB.WinCan.SDK.GIS.UI")
-clr.AddReference("CDLAB.WinCan.Template")
 import ZeroMQ
 from CDLAB.WinCan.SDK.GIS import ConnectedApplicationType, EntityType, Infrastructure
 import CDLAB.WinCan.MQ
@@ -45,9 +34,10 @@ from System.Threading.Tasks import TaskScheduler, Task
 from System.IO import FileInfo
 from System import Environment, EventHandler, String, Object, Runtime, Guid
 
+
 class selection:
     
-    def __init__(self,VX):
+    def __init__(self, VX):
         
         self.Count = 0
         self.SelectedShapes = []
@@ -56,6 +46,7 @@ class selection:
             for feature in self.layer.selectedFeatures():
                 self.Count += 1
                 self.SelectedShapes.append(feature)
+
             
 class TransferToWinCan:
     
@@ -63,7 +54,7 @@ class TransferToWinCan:
 
         return QCoreApplication.translate('TransferToWinCan', message)
   
-    def IsWinCanLayer(VX,active_layer):
+    def IsWinCanLayer(VX, active_layer):
         
         for layer in VX.created_layers:
             if layer == active_layer:
@@ -115,7 +106,6 @@ class TransferToWinCan:
         select = selection(VX)
         layer = select.layer
         
-        
         if (layer is None):
             VX.show_warning(TransferToWinCan.tr("Please select layer to transfer"))
             return False
@@ -131,7 +121,6 @@ class TransferToWinCan:
         if (select.Count == 0):
             VX.show_warning(TransferToWinCan.tr("Please select shapes to transfer"))
             return False
-        
   
     def TransferSections(VX):
             
@@ -144,7 +133,7 @@ class TransferToWinCan:
         
             fields = Dictionary[String, Object]()
 
-            for key,field in VX.MappedFields.items():
+            for key, field in VX.MappedFields.items():
    
                 value = str(Section.attribute(str(field)))
                   
@@ -153,20 +142,17 @@ class TransferToWinCan:
                     continue
          
                 fields[key] = value                
-                   
                        
             shape = str(Section.geometry().asWkt(8))  
             shape = shape.replace("LineString", "LINESTRING")
             shape = shape.replace("Z", " Z")
             fields[VxFields.OBJ_Shape_WKT] = shape          
-    
                 
             if not fields.ContainsKey(VxFields.OBJ_Type):                   
                 fields[VxFields.OBJ_Type] = "SEC"             
                   
             updateBatch.AddItem(EntityType.Section, fields)
         VX.vxConnector.SendBatchToWinCanVX(updateBatch)
-
 
     def TransferNodes(VX):
         
@@ -184,7 +170,7 @@ class TransferToWinCan:
             shape = shape.replace("ZM", " ZM")
             fields[VxFields.OBJ_Shape_WKT] = shape            
             
-            for key,field in VX.MappedFields.items():
+            for key, field in VX.MappedFields.items():
 
                 value = str(node.attribute(str(field)))
                 
