@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>VXDialogBase</class>
  <widget class="QDialog" name="VXDialogBase">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -170,6 +173,28 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="disabled" stdset="0">
     <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="loading">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>200</y>
+     <width>31</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background: rgba(1,1,1,0)</string>
+   </property>
+   <property name="text">
+    <string/>
    </property>
   </widget>
  </widget>

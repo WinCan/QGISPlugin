@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="pl_PL" sourcelanguage="en">
+<!DOCTYPE TS>
+<TS version="2.1" language="pl_PL" sourcelanguage="en">
 <context>
     <name>TransferToWinCan</name>
     <message>
@@ -64,6 +65,11 @@
         <location filename="../VX_integration.py" line="524"/>
         <source>The connection has not been established</source>
         <translation>Połączenie nie zostało ustanowione</translation>
+    </message>
+    <message>
+        <location filename="../VX_integration.py" line="562"/>
+        <source>Connection failed! - Please try again</source>
+        <translation>Błąd połączenia! - Proszę spróbować ponownie</translation>
     </message>
 </context>
 <context>
