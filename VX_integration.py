@@ -580,11 +580,31 @@ class VX:
         
         self.UpdateProject(self.vxConnector.Project)
         
+    def connect(self):
+        
+        self.dlg.loading.setMovie(self.movie)
+        self.movie.start()
+            
+        if self.vxConnector.IsConnected:
+                if type(self.vxConnector.Project) != type(None): 
+                    self.show_info(self.tr("Connected!")) 
+                    if not self.layers_created:
+                        self.create_layers(self.vxConnector.Project.CoordinateSystem)
+                        
+                    self.DownloadVxData()
+            
+        self.dlg.pushButton_2.setEnabled(True)
+        self.dlg.reinitialize.setEnabled(True)
+        self.actions[2].setEnabled(True)
+        self.actions[3].setEnabled(True)
+        self.actions[1].setChecked(True)
+        
+        self.movie.stop()
+        self.dlg.loading.clear()
+        
     def connect_pushed(self, checked):
         
         if checked :
-            self.movie.start()
-            self.dlg.loading.setMovie(self.movie)
             if self.vxConnector.IsConnected:
                     if type(self.vxConnector.Project) != type(None): 
                         self.show_info(self.tr("Connected!")) 
@@ -608,9 +628,6 @@ class VX:
             self.actions[3].setEnabled(False)
             self.actions[1].setChecked(False)
             self.vxConnector.StopCommunication()
-        
-        self.movie.stop()
-        self.dlg.loading.clear()
         
     def ToVX(self):
         TransferToWinCan.Transfer(self)
@@ -659,7 +676,7 @@ class VX:
             self.dlg.button_box.button(QDialogButtonBox.Close).setIcon((QIcon(self.plugin_dir + "\\Icons\\OK.png")))
             self.dlg.button_box.button(QDialogButtonBox.Close).setIconSize(QtCore.QSize(16, 16))
             
-            self.dlg.pushButton.clicked.connect(self.connect_pushed)
+            self.dlg.pushButton.clicked.connect(self.connect)
             self.dlg.pushButton_2.clicked.connect(self.ToVX)
             self.dlg.reinitialize.clicked.connect(self.ReinitializeConnection)
             self.first_start = False

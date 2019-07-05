@@ -1,40 +1,28 @@
-# This file contains metadata for your plugin. Since 
-# version 2.0 of QGIS this is the proper way to supply 
-# information about a plugin. The old method of 
-# embedding metadata in __init__.py will 
-# is no longer supported since version 2.0.
-
-# This file should be included when you package your plugin.# Mandatory items:
-
 [general]
-name=WinCan VX integration
+name=WinCan VX Integration
 qgisMinimumVersion=3.0
 description=Download data from WinCan VX
-version=0.9
-author=WinCan Poland
+version=0.91
+author=WinCan
 email=p.paziewski@wincan.com
 
-about=Integrate inspection data between WinCan VX and QGIS. Create WinCan layers, edit shapefiles and transfer data
+about=Integrate inspection data between WinCan VX and QGIS. Create WinCan layers, edit shapefiles and transfer data between QGIS layers and WinCan product.
 
 tracker=https://github.com/WinCan/QGISPlugin/issues
 repository=https://github.com/WinCan/QGISPlugin
-# End of mandatory metadata
 
-# Recommended items:
+changelog= 
+	v 0.91 
+		- New features, icons, toolbars and translation to polish
 
-# Uncomment the following line and add your changelog:
-changelog= v0.9 - demo
-v 0.91 - New features, icons, toolbars and translation to polish
+	v0.9 
+		- demo
 
-# Tags are comma separated with spaces allowed
 tags=VX, WinCan, Map
 
 homepage=https://www.wincan.com/en/home/
 category=Plugins
-icon=icon.png
-# experimental flag
+icon=Icons/icon.png
 experimental=False
-
-# deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 

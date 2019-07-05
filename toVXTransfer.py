@@ -33,6 +33,7 @@ from System.Threading import SynchronizationContext
 from System.Threading.Tasks import TaskScheduler, Task
 from System.IO import FileInfo
 from System import Environment, EventHandler, String, Object, Runtime, Guid
+from _ast import Or
 
 
 class selection:
@@ -56,11 +57,11 @@ class TransferToWinCan:
   
     def IsWinCanLayer(VX, active_layer):
         
-        for layer in VX.created_layers:
-            if layer == active_layer:
-                return True
-            else:
-                return False
+        if active_layer.name() == "WinCan Inspections" or active_layer.name() == "WinCan Sections" or active_layer.name() == "WinCan Manholes" or active_layer.name() == "WinCan Manhole Inspections" or active_layer.name() == "WinCan Manhole Observations" or active_layer.name() == "WinCan Observations":
+            return True
+        else: 
+            return False
+        
     
     def SaveVxShape(currentshape):
         
