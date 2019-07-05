@@ -13,7 +13,7 @@
 
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QTimer, QVariant, QThread, pyqtSignal, QThreadPool, QRunnable, QObject
 from PyQt5.QtGui import QIcon, QPixmap, QMovie
-from PyQt5.QtWidgets import QAction, QWidget, QTableWidgetItem, QDialogButtonBox, QProgressBar
+from PyQt5.QtWidgets import QAction, QWidget, QTableWidgetItem, QDialogButtonBox, QProgressBar, QToolBar
 from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField, QgsVectorFileWriter, QgsWkbTypes, QgsCoordinateReferenceSystem, QgsFeature, QgsPointXY, QgsGeometry, QgsPalLayerSettings, QgsFeatureRequest
 from .resources import *
 from .VX_integration_dialog import VXDialog
@@ -42,11 +42,9 @@ from System import Environment, EventHandler
 class VX:
 
     def __init__(self, iface):
-        self.i = 0
         SynchronizationContext.SetSynchronizationContext(SynchronizationContext())
 
         self.iface = iface
-
         self.plugin_dir = os.path.dirname(__file__)
 
         locale = QSettings().value('locale/userLocale')[0:2]
@@ -62,20 +60,28 @@ class VX:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
-        # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&WinCan VX integration')
         
         self.first_start = None
         self.timer = QTimer()
         
-        self.vxConnector = CDLAB.WinCan.SDK.GIS.VxConnector("QGIS " + str(uuid.uuid4()), CDLAB.WinCan.SDK.GIS.ConnectedApplicationType.WinCanMap)
-        
         self.MappedFields = dict()
                 
         self.layers_created = False
         
         self.first_start_mapping = True
+        
+        self.dlg = VXDialog()  
+        self.movie = QMovie(self.plugin_dir + "\\Icons\\buffer.gif")
+        self.mapping = Second_window()
+        self.vxConnector = CDLAB.WinCan.SDK.GIS.VxConnector("QGIS " + str(uuid.uuid4()), CDLAB.WinCan.SDK.GIS.ConnectedApplicationType.WinCanMap)
+        self.vxConnector.UpdateReady += EventHandler(self.UpdateVxData)
+        self.vxConnector.DeletedEntites += EventHandler(self.OnDeletedEntites)
+        self.vxConnector.EntitySelectedInVx += EventHandler(self.EntitySelectedInVx)
+        self.vxConnector.VxDataCleared += EventHandler(self.ClearVXData)
+        self.vxConnector.ReinitializeRequired += EventHandler(self.ReinitializeRequired)
+        self.vxConnector.StartCommunication()
         
     def tr(self, message):
         """Get the translation for a string using Qt translation API. """
@@ -92,12 +98,17 @@ class VX:
         add_to_toolbar=True,
         status_tip=None,
         whats_this=None,
-        parent=None):
+        parent=None,
+        checkable=False):
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
         action.triggered.connect(callback)
         action.setEnabled(enabled_flag)
+        
+        if checkable is True:
+            action.setCheckable(True)
+            action.toggled.connect(self.connect_pushed)
 
         if status_tip is not None:
             action.setStatusTip(status_tip)
@@ -107,7 +118,7 @@ class VX:
 
         if add_to_toolbar:
 
-            self.iface.addToolBarIcon(action)
+            self.toolbar.addAction(action)
 
         if add_to_menu:
             self.iface.addPluginToMenu(
@@ -120,12 +131,37 @@ class VX:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
+        self.toolbar = self.iface.addToolBar("VX integration")
 
         icon_path = self.plugin_dir + "\\Icons\\icon.png"
         self.add_action(
             icon_path,
             text=self.tr(u'Open dialog'),
             callback=self.run,
+            parent=self.iface.mainWindow())
+        
+        icon_path = self.plugin_dir + "\\Icons\\connect.png"
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Connect!'),
+            callback=self.connect_pushed,
+            parent=self.iface.mainWindow(),
+            checkable=True)
+        
+        icon_path = self.plugin_dir + "\\Icons\\transfer.png"
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Transfer to WinCan VX'),
+            callback=self.ToVX,
+            enabled_flag=False,
+            parent=self.iface.mainWindow())
+    
+        icon_path = self.plugin_dir + "\\Icons\\reinitialize.png"
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Reinitialize connection'),
+            callback=self.ReinitializeConnection,
+            enabled_flag=False,
             parent=self.iface.mainWindow())
 
         self.first_start = True
@@ -236,8 +272,6 @@ class VX:
              
     def UpdateVxData(self, source, args):
         self.package = source.GetUpdated()
-        C_Button = self.dlg.pushButton
-        C_Button.setEnabled(True)
             
         package = self.package
         if (package.IsEmpty == 1):
@@ -255,9 +289,6 @@ class VX:
                 self.draw_NodeObservations(package.NodeObservations)
             if package.Inspections.Count > 0:
                 self.draw_Inspections(package.Inspections) 
-                
-        canvas = self.iface.mapCanvas()
-        canvas.zoomToFullExtent()   
             
     def DeleteFeatures(self, toDelete, FeatureClass):
          
@@ -374,6 +405,7 @@ class VX:
         SectionLayer = self.created_layers[1]
         SectionLayer.startEditing()
         prov = SectionLayer.dataProvider()
+        points = []
         
         if SectionLayer == None:
             return
@@ -525,8 +557,8 @@ class VX:
         if self.vxConnector.IsConnected == 1:
             self.show_info(self.tr("Connected!"))
         else :
-        	self.show_error(self.tr("The connection has not been established"))
-        	
+            self.show_error(self.tr("The connection has not been established"))
+            
     def DownloadVxData(self):
         
         Nodes = self.vxConnector.GetGisObjects(EntityType.Node)
@@ -548,52 +580,48 @@ class VX:
         
         self.UpdateProject(self.vxConnector.Project)
         
-    def connect_pushed(self):
-        self.dlg.loading.setMovie(self.movie)
-        self.movie.start()
-        if self.vxConnector.IsConnected and self.i == 0:
-                if type(self.vxConnector.Project) != type(None): 
-                    self.show_info(self.tr("Connected!")) 
-                    if not self.layers_created:
-                        self.create_layers(self.vxConnector.Project.CoordinateSystem)
+    def connect_pushed(self, checked):
+        
+        if checked :
+            self.movie.start()
+            self.dlg.loading.setMovie(self.movie)
+            if self.vxConnector.IsConnected:
+                    if type(self.vxConnector.Project) != type(None): 
+                        self.show_info(self.tr("Connected!")) 
+                        if not self.layers_created:
+                            self.create_layers(self.vxConnector.Project.CoordinateSystem)
                         
-                    self.DownloadVxData()
-                    self.dlg.pushButton_2.setEnabled(True)
-                    self.dlg.reinitialize.setEnabled(True)
-                    self.i += 1
+                        self.DownloadVxData()
+            else:
+                self.vxConnector.StartCommunication()
+            
+            self.dlg.pushButton_2.setEnabled(True)
+            self.dlg.reinitialize.setEnabled(True)
+            self.actions[2].setEnabled(True)
+            self.actions[3].setEnabled(True)
+            self.actions[1].setChecked(True)
+        
         else:
-            self.show_error(self.tr("Connection failed! - Please try again"))
+            self.dlg.pushButton_2.setEnabled(False)
+            self.dlg.reinitialize.setEnabled(False)
+            self.actions[2].setEnabled(False)
+            self.actions[3].setEnabled(False)
+            self.actions[1].setChecked(False)
+            self.vxConnector.StopCommunication()
         
         self.movie.stop()
         self.dlg.loading.clear()
         
-#     def loading(self, value):
-#         if value == 2:
-#             self.movie.start()
-#         elif value == 1:
-#             self.movie.stop()
-#  
-#          
-#     def connect_pushed(self):
-#          
-#         worker = External(self.initialization)
-#         self.threadpool.start(worker)
-#         worker.signals.error.connect(self.show_info)
-#           worker.signal.connect(self.loading)
-#           worker.started.connect(self.movie.start)
-#           worker.finished.connect(self.movie.stop)
-#           worker.start()
-        
     def ToVX(self):
         TransferToWinCan.Transfer(self)
          
-    def ClearVXData(self):
+    def ClearVXData(self, source, args):
         for layer in self.iface.mapCanvas().layers():
             listOfIds = [feat.id() for feat in layer.getFeatures()]
             layer.dataProvider().deleteFeatures(listOfIds)
+        self.iface.mapCanvas().refresh()
 
     def ReinitializeConnection(self):
-        self.ClearVXData()
         self.vxConnector.StopCommunication()
         self.vxConnector.StartCommunication()
 
@@ -621,23 +649,16 @@ class VX:
             self.SelectFeature(gisObj, self.created_layers[1])
         elif args.EntityType == 3:                          
             self.SelectFeature(gisObj, self.created_layers[2])
+            
+    def ReinitializeRequired(self):          
+        self.show_error(self.tr("Connection failed! - Please try again"))
 
     def run(self):
-          
         if self.first_start == True:
-            self.movie = QMovie(self.plugin_dir + "\\Icons\\buffer.gif")
-            vxConnector = self.vxConnector
-            vxConnector.UpdateReady += EventHandler(self.UpdateVxData)
-            vxConnector.DeletedEntites += EventHandler(self.OnDeletedEntites)
-            vxConnector.EntitySelectedInVx += EventHandler(self.EntitySelectedInVx)
-            self.vxConnector.StartCommunication()
-            
-            self.dlg = VXDialog()
+
             self.dlg.button_box.button(QDialogButtonBox.Close).setIcon((QIcon(self.plugin_dir + "\\Icons\\OK.png")))
             self.dlg.button_box.button(QDialogButtonBox.Close).setIconSize(QtCore.QSize(16, 16))
-#             self.dlg.button_box.button(QDialogButtonBox.Cancel).setIcon((QIcon(self.plugin_dir + "\\Icons\\cancel.png")))
-#             self.dlg.button_box.button(QDialogButtonBox.Cancel).setIconSize(QtCore.QSize(16, 16))
-            self.mapping = Second_window()
+            
             self.dlg.pushButton.clicked.connect(self.connect_pushed)
             self.dlg.pushButton_2.clicked.connect(self.ToVX)
             self.dlg.reinitialize.clicked.connect(self.ReinitializeConnection)
@@ -650,5 +671,4 @@ class VX:
              
         if result:
             pass
-
 

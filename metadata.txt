@@ -24,6 +24,7 @@ repository=https://github.com/WinCan/QGISPlugin
 
 # Uncomment the following line and add your changelog:
 changelog= v0.9 - demo
+v 0.91 - New features, icons, toolbars and translation to polish
 
 # Tags are comma separated with spaces allowed
 tags=VX, WinCan, Map
@@ -32,7 +33,7 @@ homepage=https://www.wincan.com/en/home/
 category=Plugins
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

@@ -22,7 +22,6 @@
  This script initializes the plugin, making it known to QGIS.
 """
 
-
 import sys
 import os.path
 try:
@@ -44,15 +43,11 @@ try:
 except OSError:
     raise OSError('Please install WinCan VX!')
 
-
-
-
 clr.AddReference("ZeroMQ")
 clr.AddReference("CDLAB.WinCan.MQ")
 clr.AddReference("CDLAB.WinCan.SDK.GIS")
 clr.AddReference("CDLAB.WinCan.SDK.GIS.UI")
 clr.AddReference("CDLAB.WinCan.Template")
-
 
 
 # noinspection PyPep8Naming

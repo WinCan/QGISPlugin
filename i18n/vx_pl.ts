@@ -4,27 +4,27 @@
 <context>
     <name>TransferToWinCan</name>
     <message>
-        <location filename="../toVXTransfer.py" line="81"/>
+        <location filename="../toVXTransfer.py" line="72"/>
         <source>Shape is missing Reference to WinCan VX</source>
         <translation>Brak referencji do WinCan VX</translation>
     </message>
     <message>
-        <location filename="../toVXTransfer.py" line="120"/>
+        <location filename="../toVXTransfer.py" line="110"/>
         <source>Please select layer to transfer</source>
         <translation>Proszę wybrać warstwę do transferu</translation>
     </message>
     <message>
-        <location filename="../toVXTransfer.py" line="124"/>
+        <location filename="../toVXTransfer.py" line="114"/>
         <source>Transfer feature is not available for WinCan layers</source>
         <translation>Nie można transferować warstw WinCan</translation>
     </message>
     <message>
-        <location filename="../toVXTransfer.py" line="128"/>
+        <location filename="../toVXTransfer.py" line="118"/>
         <source>Missing connection to WinCan VX</source>
         <translation>Brak połączenia z WinCan VX</translation>
     </message>
     <message>
-        <location filename="../toVXTransfer.py" line="132"/>
+        <location filename="../toVXTransfer.py" line="122"/>
         <source>Please select shapes to transfer</source>
         <translation>Proszę wybrać elementy do transferu</translation>
     </message>
@@ -32,7 +32,7 @@
 <context>
     <name>VX</name>
     <message>
-        <location filename="../VX_integration.py" line="149"/>
+        <location filename="../VX_integration.py" line="172"/>
         <source>&amp;WinCan VX integration</source>
         <translation>Integracja z WinCan VX</translation>
     </message>
@@ -42,34 +42,49 @@
         <translation>Otwórz okienko</translation>
     </message>
     <message>
-        <location filename="../VX_integration.py" line="190"/>
+        <location filename="../VX_integration.py" line="213"/>
         <source>Section</source>
         <translation>Sekcja</translation>
     </message>
     <message>
-        <location filename="../VX_integration.py" line="191"/>
+        <location filename="../VX_integration.py" line="214"/>
         <source>Manhole</source>
         <translation>Studnia</translation>
     </message>
     <message>
-        <location filename="../VX_integration.py" line="248"/>
+        <location filename="../VX_integration.py" line="271"/>
         <source>None</source>
         <translation>Brak</translation>
     </message>
     <message>
-        <location filename="../VX_integration.py" line="522"/>
+        <location filename="../VX_integration.py" line="590"/>
         <source>Connected!</source>
         <translation>Połączono!</translation>
     </message>
     <message>
-        <location filename="../VX_integration.py" line="524"/>
+        <location filename="../VX_integration.py" line="560"/>
         <source>The connection has not been established</source>
         <translation>Połączenie nie zostało ustanowione</translation>
     </message>
     <message>
-        <location filename="../VX_integration.py" line="562"/>
+        <location filename="../VX_integration.py" line="654"/>
         <source>Connection failed! - Please try again</source>
         <translation>Błąd połączenia! - Proszę spróbować ponownie</translation>
+    </message>
+    <message>
+        <location filename="../VX_integration.py" line="144"/>
+        <source>Connect!</source>
+        <translation>Połącz!</translation>
+    </message>
+    <message>
+        <location filename="../VX_integration.py" line="152"/>
+        <source>Transfer to WinCan VX</source>
+        <translation>Transfer do WinCan VX</translation>
+    </message>
+    <message>
+        <location filename="../VX_integration.py" line="160"/>
+        <source>Reinitialize connection</source>
+        <translation>Reinicjalizuj połączenie</translation>
     </message>
 </context>
 <context>
@@ -125,22 +140,22 @@
         <translation>Usuń -&gt;</translation>
     </message>
     <message>
-        <location filename="../VX_integration_dialog_base.ui" line="32"/>
+        <location filename="../VX_integration_dialog_base.ui" line="35"/>
         <source>WinCan VX integration</source>
         <translation>Integracja z WinCan VX</translation>
     </message>
     <message>
-        <location filename="../VX_integration_dialog_base.ui" line="67"/>
+        <location filename="../VX_integration_dialog_base.ui" line="70"/>
         <source>Connect</source>
         <translation>Połącz</translation>
     </message>
     <message>
-        <location filename="../VX_integration_dialog_base.ui" line="83"/>
+        <location filename="../VX_integration_dialog_base.ui" line="86"/>
         <source>To WinCan VX --&gt;</source>
         <translation>Do WinCan VX -&gt;</translation>
     </message>
     <message>
-        <location filename="../VX_integration_dialog_base.ui" line="124"/>
+        <location filename="../VX_integration_dialog_base.ui" line="127"/>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -153,7 +168,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Nazwa projektu:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../VX_integration_dialog_base.ui" line="169"/>
+        <location filename="../VX_integration_dialog_base.ui" line="172"/>
         <source>Reinitialize</source>
         <translation>Reinicjalizuj</translation>
     </message>
