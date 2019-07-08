@@ -613,9 +613,9 @@ class VX:
             
         self.dlg.pushButton_2.setEnabled(True)
         self.dlg.reinitialize.setEnabled(True)
-        self.actions[2].setEnabled(True)
-        self.actions[3].setEnabled(True)
-        self.actions[1].setChecked(True)
+        self.actions[2].setEnabled(True) #Transfer button
+        self.actions[3].setEnabled(True) #Reinitialize button
+        self.actions[1].setChecked(True) #Connect button
         
         self.movie.stop()
         self.dlg.loading.clear()
@@ -635,16 +635,16 @@ class VX:
             
             self.dlg.pushButton_2.setEnabled(True)
             self.dlg.reinitialize.setEnabled(True)
-            self.actions[2].setEnabled(True)
-            self.actions[3].setEnabled(True)
-            self.actions[1].setChecked(True)
+            self.actions[2].setEnabled(True) #Transfer button
+            self.actions[3].setEnabled(True) #Reinitialize button
+            self.actions[1].setChecked(True) #Connect button
         
         else:
             self.dlg.pushButton_2.setEnabled(False)
             self.dlg.reinitialize.setEnabled(False)
-            self.actions[2].setEnabled(False)
-            self.actions[3].setEnabled(False)
-            self.actions[1].setChecked(False)
+            self.actions[2].setEnabled(False)#Transfer button
+            self.actions[3].setEnabled(False) #Reinitialize button
+            self.actions[1].setChecked(False) #Connect button
             self.vxConnector.StopCommunication()
         
     def ToVX(self):
