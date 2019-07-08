@@ -185,7 +185,8 @@ class VX:
             self.iface.removePluginMenu(
                 self.tr(u'&WinCan VX integration'),
                 action)
-            self.iface.removeToolBarIcon(action)
+        del self.toolbar
+            
 
         if self.first_start != True: 
             pass
