@@ -11,29 +11,25 @@
  ***************************************************************************/
 """
 
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QTimer, QVariant
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction
-from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField, QgsVectorFileWriter, QgsWkbTypes, QgsCoordinateReferenceSystem, QgsFeature, QgsPointXY, QgsGeometry, QgsPalLayerSettings, QgsFeatureRequest
-from .resources import *
-from .VX_integration_dialog import VXDialog
 import os.path
-import time
 import uuid
-import array
-import numpy
+import traceback
+import subprocess
 from datetime import datetime
+from System.Threading import SynchronizationContext
+from System import EventHandler
+
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QTimer, QVariant, QThread
+from PyQt5.QtGui import QIcon, QPixmap, QMovie
+from PyQt5.QtWidgets import QAction, QWidget, QTableWidgetItem, QDialogButtonBox, QToolBar
+from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField, QgsVectorFileWriter, QgsWkbTypes, QgsCoordinateReferenceSystem, QgsFeature, QgsPointXY, QgsGeometry, QgsPalLayerSettings, QgsFeatureRequest
+
+
 import ZeroMQ
-from CDLAB.WinCan.SDK.GIS import ConnectedApplicationType, EntityType, Infrastructure
+from CDLAB.WinCan.SDK.GIS import ConnectedApplicationType, EntityType
 import CDLAB.WinCan.MQ
 import CDLAB.WinCan.SDK.GIS.UI
 import CDLAB.WinCan.Template
-from System.Collections.Generic import Dictionary
-from System.Threading import SynchronizationContext
-from System.Threading.Tasks import TaskScheduler, Task
-from System.IO import FileInfo
-from System import Environment, EventHandler, String, Object, Runtime, Guid
-from _ast import Or
 
 
 class selection:
@@ -61,7 +57,6 @@ class TransferToWinCan:
             return True
         else: 
             return False
-        
     
     def SaveVxShape(currentshape):
         

@@ -11,32 +11,29 @@
  ***************************************************************************/
 """
 
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QTimer, QVariant, QThread, pyqtSignal, QThreadPool, QRunnable, QObject
+import os.path
+import uuid
+import traceback
+import subprocess
+from datetime import datetime
+from System.Threading import SynchronizationContext
+from System import EventHandler
+
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QTimer, QVariant, QThread
 from PyQt5.QtGui import QIcon, QPixmap, QMovie
-from PyQt5.QtWidgets import QAction, QWidget, QTableWidgetItem, QDialogButtonBox, QProgressBar, QToolBar
+from PyQt5.QtWidgets import QAction, QWidget, QTableWidgetItem, QDialogButtonBox, QToolBar
 from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField, QgsVectorFileWriter, QgsWkbTypes, QgsCoordinateReferenceSystem, QgsFeature, QgsPointXY, QgsGeometry, QgsPalLayerSettings, QgsFeatureRequest
+
 from .resources import *
 from .VX_integration_dialog import VXDialog
 from .Second_window_dialog import Second_window
-import os.path
-import time
-import uuid
-import array
-import numpy
-import shutil
-import traceback
-import timeit
 from .toVXTransfer import TransferToWinCan
-from datetime import datetime
+
 import ZeroMQ
 from CDLAB.WinCan.SDK.GIS import ConnectedApplicationType, EntityType
 import CDLAB.WinCan.MQ
 import CDLAB.WinCan.SDK.GIS.UI
 import CDLAB.WinCan.Template
-from System.Threading import SynchronizationContext
-from System.Threading.Tasks import TaskScheduler
-from System.IO import FileInfo
-from System import Environment, EventHandler
            
                 
 class VX:
@@ -64,7 +61,6 @@ class VX:
         self.menu = self.tr(u'&WinCan VX integration')
         
         self.first_start = None
-        self.timer = QTimer()
         
         self.MappedFields = dict()
                 
@@ -81,7 +77,14 @@ class VX:
         self.vxConnector.EntitySelectedInVx += EventHandler(self.EntitySelectedInVx)
         self.vxConnector.VxDataCleared += EventHandler(self.ClearVXData)
         self.vxConnector.ReinitializeRequired += EventHandler(self.ReinitializeRequired)
-        self.vxConnector.StartCommunication()
+        
+        processes = subprocess.Popen('tasklist', stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE).communicate()[0]
+        if b'WinCanVX.exe' in processes:
+            self.vxConnector.StartCommunication()
+            self.VX_Enabled = True
+
+        else:
+            self.VX_Enabled = False
         
     def tr(self, message):
         """Get the translation for a string using Qt translation API. """
@@ -92,7 +95,7 @@ class VX:
         self,
         icon_path,
         text,
-        callback,
+        callback=False,
         enabled_flag=True,
         add_to_menu=True,
         add_to_toolbar=True,
@@ -103,7 +106,8 @@ class VX:
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
-        action.triggered.connect(callback)
+        if callback:
+            action.triggered.connect(callback)
         action.setEnabled(enabled_flag)
         
         if checkable is True:
@@ -132,37 +136,46 @@ class VX:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         self.toolbar = self.iface.addToolBar("VX integration")
-
-        icon_path = self.plugin_dir + "\\Icons\\icon.png"
-        self.add_action(
-            icon_path,
-            text=self.tr(u'Open dialog'),
-            callback=self.run,
-            parent=self.iface.mainWindow())
         
-        icon_path = self.plugin_dir + "\\Icons\\connect.png"
-        self.add_action(
-            icon_path,
-            text=self.tr(u'Connect!'),
-            callback=self.connect_pushed,
-            parent=self.iface.mainWindow(),
-            checkable=True)
+        if self.VX_Enabled:
+            icon_path = self.plugin_dir + "\\Icons\\icon.png"
+            self.add_action(
+                icon_path,
+                text=self.tr(u'Open dialog'),
+                callback=self.run,
+                parent=self.iface.mainWindow())
         
-        icon_path = self.plugin_dir + "\\Icons\\transfer.png"
-        self.add_action(
-            icon_path,
-            text=self.tr(u'Transfer to WinCan VX'),
-            callback=self.ToVX,
-            enabled_flag=False,
-            parent=self.iface.mainWindow())
+            icon_path = self.plugin_dir + "\\Icons\\connect.png"
+            self.add_action(
+                icon_path,
+                text=self.tr(u'Connect!'),
+                callback=self.connect_pushed,
+                parent=self.iface.mainWindow(),
+                checkable=True)
+        
+            icon_path = self.plugin_dir + "\\Icons\\transfer.png"
+            self.add_action(
+                icon_path,
+                text=self.tr(u'Transfer to WinCan VX'),
+                callback=self.ToVX,
+                enabled_flag=False,
+                parent=self.iface.mainWindow())
     
-        icon_path = self.plugin_dir + "\\Icons\\reinitialize.png"
-        self.add_action(
-            icon_path,
-            text=self.tr(u'Reinitialize connection'),
-            callback=self.ReinitializeConnection,
-            enabled_flag=False,
-            parent=self.iface.mainWindow())
+            icon_path = self.plugin_dir + "\\Icons\\reinitialize.png"
+            self.add_action(
+                icon_path,
+                text=self.tr(u'Reinitialize connection'),
+                callback=self.ReinitializeConnection,
+                enabled_flag=False,
+                parent=self.iface.mainWindow())
+        
+        else:
+            icon_path = self.plugin_dir + "\\Icons\\restart.png"
+            self.add_action(
+                icon_path,
+                text=self.tr(u'ERROR: VX not started - Start VX and restart QGIS'),
+                enabled_flag=False,
+                parent=self.iface.mainWindow())
 
         self.first_start = True
         
@@ -174,7 +187,6 @@ class VX:
                 action)
             self.iface.removeToolBarIcon(action)
 
-        self.timer.stop()
         if self.first_start != True: 
             pass
         
@@ -197,6 +209,7 @@ class VX:
         while row < self.mapping.tableWidget.rowCount():
             self.MappedFields[self.mapping.tableWidget.item(row, 0).text()] = self.mapping.tableWidget.item(row, 1).text()
             row += 1
+        del row
         
     def MapingComboBox(self):
         if self.mapping.comboBox.currentText() == self.tr("Section"):
@@ -271,9 +284,8 @@ class VX:
             self.dlg.textBrowser.setText(self.tr("None"))
              
     def UpdateVxData(self, source, args):
-        self.package = source.GetUpdated()
+        package = source.GetUpdated()
             
-        package = self.package
         if (package.IsEmpty == 1):
             return
         else: 
@@ -392,7 +404,8 @@ class VX:
             feature.setGeometry(QgsGeometry.fromPolylineXY(points))
             self.Add_values(feature, ins, self.vxConnector.LayerFieldsPovider.InspectionShapeFields)
             inspections.append(feature)
-                
+            
+        del points 
         prov.addFeatures(inspections)
         InspectionLayer.updateExtents()
         InspectionLayer.commitChanges() 
@@ -435,6 +448,7 @@ class VX:
             prov.addFeatures(sections)
             SectionLayer.loadNamedStyle(self.plugin_dir + '\\Styles\\style_section.qml')
             
+        del points 
         SectionLayer.updateExtents()
         SectionLayer.commitChanges() 
         QCoreApplication.processEvents()  
@@ -475,6 +489,7 @@ class VX:
             prov.addFeatures(points)
             NodeLayer.loadNamedStyle(self.plugin_dir + '\\Styles\\style_node.qml')
             
+        del points 
         NodeLayer.updateExtents()
         NodeLayer.commitChanges()
         QCoreApplication.processEvents()
@@ -495,6 +510,7 @@ class VX:
             self.Add_values(feature, Nodeins, self.vxConnector.LayerFieldsPovider.NodeInspectionShapeFields)
             nodeinspection.append(feature)
                 
+        del points 
         prov.addFeatures(nodeinspection)
         NodeInspectionLayer.updateExtents()
         NodeInspectionLayer.commitChanges()  
@@ -516,6 +532,7 @@ class VX:
                 points.append(feature)
             
         prov.addFeatures(points)
+        del points 
         
         NodeObservationLayer.loadNamedStyle(self.plugin_dir + '\\Styles\\style_NodeObs.qml')
         NodeObservationLayer.updateExtents()
@@ -672,7 +689,7 @@ class VX:
 
     def run(self):
         if self.first_start == True:
-
+            
             self.dlg.button_box.button(QDialogButtonBox.Close).setIcon((QIcon(self.plugin_dir + "\\Icons\\OK.png")))
             self.dlg.button_box.button(QDialogButtonBox.Close).setIconSize(QtCore.QSize(16, 16))
             
@@ -684,8 +701,6 @@ class VX:
         self.dlg.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) 
         self.dlg.show()
 
-        result = self.dlg.exec_()
+        self.dlg.exec_()
+        
              
-        if result:
-            pass
-
