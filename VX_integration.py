@@ -77,6 +77,7 @@ class VX:
         self.vxConnector.EntitySelectedInVx += EventHandler(self.EntitySelectedInVx)
         self.vxConnector.VxDataCleared += EventHandler(self.ClearVXData)
         self.vxConnector.ReinitializeRequired += EventHandler(self.ReinitializeRequired)
+        self.vxConnector.VxLayerDataCleared += EventHandler(self.VxLayerDataCleared)
         
         processes = subprocess.Popen('tasklist', stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE).communicate()[0]
         if b'WinCanVX.exe' in processes:
@@ -510,8 +511,6 @@ class VX:
             feature.setGeometry(QgsGeometry.fromPolylineXY(points))
             self.Add_values(feature, Nodeins, self.vxConnector.LayerFieldsPovider.NodeInspectionShapeFields)
             nodeinspection.append(feature)
-                
-        del points 
         prov.addFeatures(nodeinspection)
         NodeInspectionLayer.updateExtents()
         NodeInspectionLayer.commitChanges()  
@@ -685,8 +684,16 @@ class VX:
         elif args.EntityType == 3:                          
             self.SelectFeature(gisObj, self.created_layers[2])
             
-    def ReinitializeRequired(self):          
+    def ReinitializeRequired(self, source, args):          
         self.show_error(self.tr("Connection failed! - Please try again"))
+        self.ReinitializeConnection()
+        
+    def VxLayerDataCleared(self, source, args):
+        self.show_info(self.tr("Regenerating data..."))
+        for layer in self.iface.mapCanvas().layers():
+            listOfIds = [feat.id() for feat in layer.getFeatures()]
+            layer.dataProvider().deleteFeatures(listOfIds)
+        self.iface.mapCanvas().refresh()
 
     def run(self):
         if self.first_start == True:
