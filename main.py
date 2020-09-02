@@ -35,7 +35,7 @@ class Plugin_main:
         self.transfer = Transfer(self, self.VX.connection, self.qgis)
         
         self.main_window.connect_button.clicked.connect(self.connect_pushed)
-        self.main_window.to_VX_button.clicked.connect(self.transfer.Transfer)
+        self.main_window.to_VX_button.clicked.connect(self.transfer.transfer)
         self.main_window.reinitialize_button.clicked.connect(self.VX.restart_connection)
         self.main_window.button_box.button(QDialogButtonBox.Close).setIcon((QIcon(self.plugin_dir + "\\Icons\\OK.png")))
         self.main_window.button_box.button(QDialogButtonBox.Close).setIconSize(QtCore.QSize(16, 16))
@@ -123,7 +123,7 @@ class Plugin_main:
             self.add_action(
                 icon_path,
                 text=self.tr(u'Transfer to WinCan VX'),
-                callback=self.transfer.Transfer,
+                callback=self.transfer.transfer,
                 enabled_flag=False,
                 parent=self.qgis.mainWindow())
 
