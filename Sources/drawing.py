@@ -21,6 +21,12 @@ from qgis.core import QgsCoordinateReferenceSystem,\
 from CDLAB.WinCan.SDK.GIS import EntityType, Model
 
 class Drawing(QObject):
+    wincan_layers = ["WinCan Inspections",
+                     "WinCan Sections",
+                     "WinCan Manholes",
+                     "WinCan Manhole Inspections",
+                     "WinCan Manhole Observations",
+                     "WinCan Observations"]
     layers_created = False
     created_layers = []
     VX_data_cleared = pyqtSignal()
@@ -55,8 +61,9 @@ class Drawing(QObject):
     @pyqtSlot()
     def clear_data(self):
         for layer in self.qgis.mapCanvas().layers():
-            listOfIds = [feat.id() for feat in layer.getFeatures()]
-            layer.dataProvider().deleteFeatures(listOfIds)
+            if layer.name() in self.wincan_layers:
+                listOfIds = [feat.id() for feat in layer.getFeatures()]
+                layer.dataProvider().deleteFeatures(listOfIds)
         self.qgis.mapCanvas().refresh()
     
     @pyqtSlot(Model.DataPackage)
@@ -80,7 +87,6 @@ class Drawing(QObject):
             if data.Inspections.Count > 0:
                 self.draw_Inspections(data.Inspections)
                 
-        
         canvas = self.qgis.mapCanvas()
         canvas.zoomToFullExtent()
                 
@@ -125,14 +131,15 @@ class Drawing(QObject):
         self.qgis.mapCanvas().refresh()
                                        
     def get_selected(self):
-        self.Count = 0
-        self.SelectedShapes = []
-        self.layer = self.qgis.activeLayer()
-        if type(self.layer) is not type(None):
-            for feature in self.layer.selectedFeatures():
-                self.Count += 1
-                self.SelectedShapes.append(feature)
-          
+        count = 0
+        selected_shapes = []
+        layer = self.qgis.activeLayer()
+        if type(layer) is not type(None):
+            for feature in layer.selectedFeatures():
+                count += 1
+                selected_shapes.append(feature)
+        return count, selected_shapes, layer
+    
     def draw_Inspections(self, Inspections):
         QCoreApplication.processEvents()
         inspections = []
@@ -321,18 +328,12 @@ class Drawing(QObject):
                 feature.setAttribute(attr, str(entity.GetValue(value)))
                 
     def create_layers(self):
-        inspection_layer_name = "WinCan Inspections"
-        section_layer_name = "WinCan Sections"
-        node_layer_name = "WinCan Manholes"
-        node_nspection_layer_name = "WinCan Manhole Inspections"
-        node_observation_layer_name = "WinCan Manhole Observations"
-        observation_layer_name = "WinCan Observations"
-        Layers = [inspection_layer_name, 
-                  section_layer_name, 
-                  node_layer_name,
-                  node_nspection_layer_name, 
-                  node_observation_layer_name, 
-                  observation_layer_name]
+        inspection_layer_name = self.wincan_layers[0]
+        section_layer_name = self.wincan_layers[1]
+        node_layer_name = self.wincan_layers[2]
+        node_nspection_layer_name = self.wincan_layers[3]
+        node_observation_layer_name = self.wincan_layers[4]
+        observation_layer_name = self.wincan_layers[5]
         
         date = datetime.now()
         layers_path = self.VX.Project.Path + \
@@ -353,7 +354,7 @@ class Drawing(QObject):
         self.fields = []
         nr = 0
 
-        for layer in Layers:
+        for layer in self.wincan_layers:
             layer_full_path = layers_path + "\\" + layer + ".shp"
             self.fields.append(self.get_qgis_fields(ShapeFields[nr]))
             if (layer == node_layer_name or layer == node_observation_layer_name or layer == observation_layer_name):

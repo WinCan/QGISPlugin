@@ -12,8 +12,6 @@ from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField, Qgs
 
 from .resources import *
 from .Sources.connection import Connection
-from .Sources.drawing import Drawing
-from .Sources.mapping import *
 from .Sources.transfer import Transfer
 from .Dialogs.VX_integration_dialog import VXDialog
 from .Dialogs.Second_window_dialog import Second_window
@@ -34,11 +32,7 @@ class Plugin_main:
         self.set_translator()        
         self.VX = Connection(self, self.qgis)
         self.main_window = VXDialog()
-        self.mapping_window = Mapping(self, self.VX)
-        self.transfer = Transfer()
-        
-        #Test - to be deleted
-        self.drawing = Drawing(self, self.VX, self.qgis)
+        self.transfer = Transfer(self, self.VX.connection, self.qgis)
         
         self.main_window.connect_button.clicked.connect(self.connect_pushed)
         self.main_window.to_VX_button.clicked.connect(self.transfer.Transfer)
