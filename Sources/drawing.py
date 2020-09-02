@@ -18,12 +18,15 @@ from qgis.core import QgsCoordinateReferenceSystem,\
                       QgsFields, \
                       QgsField    
 
-from CDLAB.WinCan.SDK.GIS import EntityType
+from CDLAB.WinCan.SDK.GIS import EntityType, Model
 
 class Drawing(QObject):
     layers_created = False
     created_layers = []
+    VX_data_cleared = pyqtSignal()
+    VX_data_updated = pyqtSignal(Model.DataPackage)
     feature_selected = pyqtSignal(int, str)
+    entities_deleted = pyqtSignal(list)
     
     def __init__(self, _parent, _VX, _qgis):
         super(Drawing, self).__init__()
@@ -31,57 +34,96 @@ class Drawing(QObject):
         self.plugin_dir = self.parent.plugin_dir
         self.VX = _VX
         self.qgis = _qgis
+        self.VX_data_cleared.connect(self.clear_data)
+        self.VX_data_updated.connect(self.redraw)
         self.feature_selected.connect(self.select_feature)
+        self.entities_deleted.connect(self.delete_entities)
         
     def clear_VX_data(self, source, args):
+        self.VX_data_cleared.emit()
+        
+    def update_VX_data(self, source, args):
+        package = source.GetUpdated()
+        self.VX_data_updated.emit(package)
+        
+    def entity_selected_in_vx(self, source, args):
+        self.feature_selected.emit(int(args.EntityType), str(args.EntityId))
+          
+    def on_deleted_entities(self, source, args):
+        self.entities_deleted.emit(args.DeletedEntities)
+    
+    @pyqtSlot()
+    def clear_data(self):
         for layer in self.qgis.mapCanvas().layers():
             listOfIds = [feat.id() for feat in layer.getFeatures()]
             layer.dataProvider().deleteFeatures(listOfIds)
         self.qgis.mapCanvas().refresh()
     
-    def download_vx_data(self):
-        Nodes = self.VX.connection.GetGisObjects(EntityType.Node)
-        Sections = self.VX.connection.GetGisObjects(EntityType.Section)
-        Observations = self.VX.connection.GetGisObjects(EntityType.SectionObservation)
-        NodeObservations = self.VX.connection.GetGisObjects(EntityType.NodeObservation)
-        Inspections = self.VX.connection.GetGisObjects(EntityType.SectionInspection)
-        NodeInspections = self.VX.connection.GetGisObjects(EntityType.NodeInspection)
-        return [Nodes, Sections, Observations, NodeObservations, Inspections, NodeInspections]
-
-    def draw_VX_data(self, data):
-
-        self.draw_Nodes(data[0])
-        self.draw_Sections(data[1])
-        self.draw_Observations(data[2])
-        self.draw_NodeObservations(data[3])
-        self.draw_Inspections(data[4])
-        self.draw_NodeInspections(data[5])
-
-        canvas = self.qgis.mapCanvas()
-        canvas.zoomToFullExtent()
-        
-    def update_VX_data(self, source, args):
-        package = source.GetUpdated()
-
+    @pyqtSlot(Model.DataPackage)
+    def redraw(self, data):
         if not self.layers_created:
             self.create_layers()
             
-        if package.IsEmpty:
+        if data.IsEmpty:
             return
         else:
-            if package.Nodes.Count > 0:
-                self.draw_Nodes(package.Nodes)
-            if package.Sections.Count > 0:
-                self.draw_Sections(package.Sections)
-            if package.Observations.Count > 0:
-                self.draw_Observations(package.Observations)
-            if package.NodeInspections.Count > 0:
-                self.draw_NodeInspections(package.NodeInspections)
-            if package.NodeObservations.Count > 0:
-                self.draw_NodeObservations(package.NodeObservations)
-            if package.Inspections.Count > 0:
-                self.draw_Inspections(package.Inspections)
+            if data.Nodes.Count > 0:
+                self.draw_Nodes(data.Nodes)
+            if data.Sections.Count > 0:
+                self.draw_Sections(data.Sections)
+            if data.Observations.Count > 0:
+                self.draw_Observations(data.Observations)
+            if data.NodeInspections.Count > 0:
+                self.draw_NodeInspections(data.NodeInspections)
+            if data.NodeObservations.Count > 0:
+                self.draw_NodeObservations(data.NodeObservations)
+            if data.Inspections.Count > 0:
+                self.draw_Inspections(data.Inspections)
                 
+        
+        canvas = self.qgis.mapCanvas()
+        canvas.zoomToFullExtent()
+                
+    @pyqtSlot(int, str)       
+    def select_feature(self, entity_type, feature_id):
+        if self.VX.IsConnected and self.layers_created:
+            layer = None
+            if entity_type == 0:
+                layer = self.created_layers[1]
+            elif entity_type == 3:
+                layer = self.created_layers[2]
+            if layer != None:
+                mc = self.qgis.mapCanvas()
+                for l in mc.layers():
+                    if l.type() == l.VectorLayer:
+                        l.removeSelection()
+                request = QgsFeatureRequest().setSubsetOfAttributes(["OBJ_PK"], layer.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % feature_id)
+                features = layer.getFeatures(request)
+
+                for f in features:
+                    layer.select(f.id())
+
+                box = layer.boundingBoxOfSelected()
+                mc.setExtent(box)
+                mc.refresh()
+                
+    @pyqtSlot(list)
+    def delete_entities(self, entities):
+        sections = [entity for entity in entities if entity.EntityType == 0]
+        nodes = [entity for entity in entities if entity.EntityType == 3]
+        inspections = [entity for entity in entities if entity.EntityType == 1]
+        observations = [entity for entity in entities if entity.EntityType == 2]
+        nodeInspections = [entity for entity in entities if entity.EntityType == 5]
+        nodeObservations = [entity for entity in entities if entity.EntityType == 6]
+
+        self.delete_features(sections, self.created_layers[1])
+        self.delete_features(nodes, self.created_layers[2])
+        self.delete_features(inspections, self.created_layers[0])
+        self.delete_features(observations, self.created_layers[5])
+        self.delete_features(nodeInspections, self.created_layers[3])
+        self.delete_features(nodeObservations, self.created_layers[4])
+        self.qgis.mapCanvas().refresh()
+                                       
     def get_selected(self):
         self.Count = 0
         self.SelectedShapes = []
@@ -90,37 +132,6 @@ class Drawing(QObject):
             for feature in self.layer.selectedFeatures():
                 self.Count += 1
                 self.SelectedShapes.append(feature)
-              
-    def entity_selected_in_vx(self, source, args):
-        self.feature_selected.emit(int(args.EntityType), str(args.EntityId))
-        # gis_obj = self.VX.connection.GetGisObject(args.EntityId, args.EntityType)
-        # if args.EntityType == 0:
-        #     self.select_feature(args.EntityId, self.created_layers[1])
-        # elif args.EntityType == 3:
-        #     self.select_feature(args.EntityId, self.created_layers[2])
-            
-    @pyqtSlot(int, str)       
-    def select_feature(self, entity_type, feature_id):
-        print(f"{entity_type} {feature_id}")
-        if self.VX.IsConnected:
-            if entity_type == 0:
-                layer = self.created_layers[1]
-            elif entity_type == 3:
-                layer = self.created_layers[2]
-            mc = self.qgis.mapCanvas()
-            for l in mc.layers():
-                if l.type() == l.VectorLayer:
-                    l.removeSelection()
-            request = QgsFeatureRequest().setSubsetOfAttributes(["OBJ_PK"], layer.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % feature_id)
-            print('"OBJ_PK"=\'%s\'' % feature_id)
-            features = layer.getFeatures(request)
-
-            for f in features:
-                layer.select(f.id())
-
-            box = layer.boundingBoxOfSelected()
-            mc.setExtent(box)
-            mc.refresh()
           
     def draw_Inspections(self, Inspections):
         QCoreApplication.processEvents()
@@ -136,7 +147,7 @@ class Drawing(QObject):
                 points.append(QgsPointXY(point.X, point.Y))
             feature.setGeometry(QgsGeometry.fromPolylineXY(points))
             self.add_values(
-                feature, ins, self.VX.connection.LayerFieldsPovider.InspectionShapeFields)
+                feature, ins, self.VX.LayerFieldsPovider.InspectionShapeFields)
             inspections.append(feature)
 
         prov.addFeatures(inspections)
@@ -175,7 +186,7 @@ class Drawing(QObject):
                     points.append(QgsPointXY(point.X, point.Y))
                 feature.setGeometry(QgsGeometry.fromPolylineXY(points))
                 self.add_values(
-                    feature, section, self.VX.connection.LayerFieldsPovider.SectionShapeFields)
+                    feature, section, self.VX.LayerFieldsPovider.SectionShapeFields)
                 sections.append(feature)
                 section.ExternalItemId = nr
                 nr += 1
@@ -207,7 +218,7 @@ class Drawing(QObject):
                     ["OBJ_PK"], NodeLayer.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % node.Id)
                 features = NodeLayer.getFeatures(request)
                 for f in features:
-                    for value in self.VX.connection.LayerFieldsPovider.NodeShapeFields:
+                    for value in self.VX.LayerFieldsPovider.NodeShapeFields:
                         attr = NodeLayer.fields().indexFromName(str(value.Key))
                         NodeLayer.changeAttributeValue(
                             f.id(), attr, str(node.GetValue(value)))
@@ -219,7 +230,7 @@ class Drawing(QObject):
                     layerPoint = QgsPointXY(point.X, point.Y)
                     feature.setGeometry(QgsGeometry.fromPointXY(layerPoint))
                 self.add_values(
-                    feature, node, self.VX.connection.LayerFieldsPovider.NodeShapeFields)
+                    feature, node, self.VX.LayerFieldsPovider.NodeShapeFields)
                 points.append(feature)
                 node.ExternalItemId = nr
                 nr += 1
@@ -247,7 +258,7 @@ class Drawing(QObject):
                 points.append(QgsPointXY(point.X, point.Y))
             feature.setGeometry(QgsGeometry.fromPolylineXY(points))
             self.add_values(
-                feature, Nodeins, self.VX.connection.LayerFieldsPovider.NodeInspectionShapeFields)
+                feature, Nodeins, self.VX.LayerFieldsPovider.NodeInspectionShapeFields)
             nodeinspection.append(feature)
 
         prov.addFeatures(nodeinspection)
@@ -268,7 +279,7 @@ class Drawing(QObject):
                 layerPoint = QgsPointXY(point.X, point.Y)
                 feature.setGeometry(QgsGeometry.fromPointXY(layerPoint))
                 self.add_values(
-                    feature, Nodeobs, self.VX.connection.LayerFieldsPovider.NodeObservationShapeFields)
+                    feature, Nodeobs, self.VX.LayerFieldsPovider.NodeObservationShapeFields)
                 points.append(feature)
 
         prov.addFeatures(points)
@@ -292,7 +303,7 @@ class Drawing(QObject):
                 layerPoint = QgsPointXY(point.X, point.Y)
                 feature.setGeometry(QgsGeometry.fromPointXY(layerPoint))
                 self.add_values(
-                    feature, obs, self.VX.connection.LayerFieldsPovider.ObservationShapeFields)
+                    feature, obs, self.VX.LayerFieldsPovider.ObservationShapeFields)
                 points.append(feature)
 
         prov.addFeatures(points)
@@ -310,8 +321,6 @@ class Drawing(QObject):
                 feature.setAttribute(attr, str(entity.GetValue(value)))
                 
     def create_layers(self):
-        print("create layers started!")
-
         inspection_layer_name = "WinCan Inspections"
         section_layer_name = "WinCan Sections"
         node_layer_name = "WinCan Manholes"
@@ -326,7 +335,7 @@ class Drawing(QObject):
                   observation_layer_name]
         
         date = datetime.now()
-        layers_path = self.VX.project.Path + \
+        layers_path = self.VX.Project.Path + \
             "\\Misc\\Exchange\\QGIS\\Layers" + date.strftime("%d_%m_%Y")
         try:
             os.makedirs(layers_path)
@@ -338,7 +347,7 @@ class Drawing(QObject):
             EPSG = QgsCoordinateReferenceSystem()
         else:
             EPSG = QgsCoordinateReferenceSystem.fromEpsgId(int(WKT.split("\"")[-2]))
-        LFP = self.VX.connection.LayerFieldsPovider
+        LFP = self.VX.LayerFieldsPovider
         ShapeFields = [LFP.InspectionShapeFields, LFP.SectionShapeFields, LFP.NodeShapeFields,
                        LFP.NodeInspectionShapeFields, LFP.NodeObservationShapeFields, LFP.ObservationShapeFields]
         self.fields = []
@@ -380,25 +389,9 @@ class Drawing(QObject):
                     feature_class.deleteFeature(f.id())
             feature_class.updateExtents()
             feature_class.commitChanges()
-            
-    def on_deleted_entities(self, source, args):
-        sections = [entity for entity in args.DeletedEntities if entity.EntityType == 0]
-        nodes = [entity for entity in args.DeletedEntities if entity.EntityType == 3]
-        inspections = [entity for entity in args.DeletedEntities if entity.EntityType == 1]
-        observations = [entity for entity in args.DeletedEntities if entity.EntityType == 2]
-        nodeInspections = [entity for entity in args.DeletedEntities if entity.EntityType == 5]
-        nodeObservations = [entity for entity in args.DeletedEntities if entity.EntityType == 6]
-
-        self.delete_features(sections, self.created_layers[1])
-        self.delete_features(nodes, self.created_layers[2])
-        self.delete_features(inspections, self.created_layers[0])
-        self.delete_features(observations, self.created_layers[5])
-        self.delete_features(nodeInspections, self.created_layers[3])
-        self.delete_features(nodeObservations, self.created_layers[4])
-        self.qgis.mapCanvas().refresh()
         
     def get_coordinate_system(self):
-        return self.VX.project.CoordinateSystem
+        return self.VX.Project.CoordinateSystem
                           
     def get_qgis_fields(self, fields):
         names = QgsFields()

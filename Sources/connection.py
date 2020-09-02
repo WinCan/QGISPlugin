@@ -24,7 +24,7 @@ from CDLAB.WinCan.SDK.GIS import ConnectedApplicationType, EntityType
 from .drawing import Drawing
 
 class Connection():
-    project = None
+    Project = None
     def __init__(self, _parent, _qgis):
         self.parent = _parent
         self.connection = CDLAB.WinCan.SDK.GIS.VxConnector("QGIS " + str(uuid.uuid4()), CDLAB.WinCan.SDK.GIS.ConnectedApplicationType.WinCanMap)
@@ -83,5 +83,5 @@ class Connection():
     def is_project(self):
         result = type(self.connection.Project) != type(None)
         if result:
-            self.project = self.connection.Project
+            self.Project = self.connection.Project
         return result

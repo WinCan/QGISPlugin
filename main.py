@@ -196,12 +196,8 @@ class Plugin_main:
             self.show_info(self.tr("Connecting... Please wait!"))
             if self.VX.start_comunication():
                 self.show_info(self.tr("Connected!"))
-                self.update_project_label(self.VX.project)
+                self.update_project_label(self.VX.Project)
                 self.turn_buttons_on()
-                if not self.drawing.layers_created:
-                    self.drawing.create_layers()
-                data = self.drawing.download_vx_data()
-                self.drawing.draw_VX_data(data)
         else:
             self.turn_buttons_off()
             self.VX.stop_connection()
