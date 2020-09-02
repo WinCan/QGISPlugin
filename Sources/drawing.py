@@ -12,6 +12,7 @@ from qgis.core import QgsCoordinateReferenceSystem,\
                       QgsVectorLayer,\
                       QgsGeometry, \
                       QgsWkbTypes,\
+                      QgsPointXY, \
                       QgsFeature, \
                       QgsProject, \
                       QgsFields, \
@@ -22,7 +23,8 @@ from CDLAB.WinCan.SDK.GIS import EntityType
 class Drawing():
     layers_created = False
     def __init__(self, _parent, _VX, _qgis):
-        self.plugin_dir = 
+        self.parent = _parent
+        self.plugin_dir = self.parent.plugin_dir
         self.VX = _VX
         self.gqis = _qgis
         
@@ -128,7 +130,6 @@ class Drawing():
                 feature, ins, self.VX.connection.LayerFieldsPovider.InspectionShapeFields)
             inspections.append(feature)
 
-        del points
         prov.addFeatures(inspections)
         InspectionLayer.updateExtents()
         InspectionLayer.commitChanges()
@@ -175,7 +176,6 @@ class Drawing():
             SectionLayer.loadNamedStyle(
                 self.plugin_dir + '\\Styles\\style_section.qml')
 
-        del points
         SectionLayer.updateExtents()
         SectionLayer.commitChanges()
         QCoreApplication.processEvents()
@@ -220,7 +220,6 @@ class Drawing():
             NodeLayer.loadNamedStyle(
                 self.plugin_dir + '\\Styles\\style_node.qml')
 
-        del points
         NodeLayer.updateExtents()
         NodeLayer.commitChanges()
         QCoreApplication.processEvents()
@@ -242,7 +241,6 @@ class Drawing():
                 feature, Nodeins, self.VX.connection.LayerFieldsPovider.NodeInspectionShapeFields)
             nodeinspection.append(feature)
 
-        del points
         prov.addFeatures(nodeinspection)
         NodeInspectionLayer.updateExtents()
         NodeInspectionLayer.commitChanges()
@@ -265,7 +263,6 @@ class Drawing():
                 points.append(feature)
 
         prov.addFeatures(points)
-        del points
 
         NodeObservationLayer.loadNamedStyle(
             self.plugin_dir + '\\Styles\\style_NodeObs.qml')
