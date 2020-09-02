@@ -63,23 +63,17 @@ class Transfer:
             return False
         return True
 
-    def TransferSections(self):
+    def transfer_sections(self):
         for Section in self.selected_shapes:
             if Section is None:
                 return
-
             fields = Dictionary[String, Object]()
-
             for key, field in self.mapping_window.mapped_fields.items():
-
                 value = str(Section.attribute(str(field)))
-
                 if key == "OBJ_PK":
                     fields[self.vx_fields.OBJ_PK] = str(uuid.uuid4())
                     continue
-
                 fields[key] = value
-
             shape = str(Section.geometry().asWkt(8))
             shape = shape.replace("LineString", "LINESTRING")
             shape = shape.replace("Z", " Z")
@@ -91,7 +85,7 @@ class Transfer:
             self.batch_update.AddItem(EntityType.Section, fields)
         self.VX.SendBatchToWinCanVX(self.batch_update)
 
-    def TransferNodes(self):
+    def transfer_nodes(self):
         for node in self.selected_shapes:
             if node is None:
                 return
@@ -113,7 +107,7 @@ class Transfer:
             self.batch_update.AddItem(EntityType.Node, fields)
         self.VX.SendBatchToWinCanVX(self.batch_update)
 
-    def Transfer(self):
+    def transfer(self):
         if self.check_conditions():
             result = self.mapping_window.open(self.layer.fields())
             if result:
@@ -121,6 +115,6 @@ class Transfer:
 
     def transfer_form(self):
         if self.layer.geometryType() == 0:
-            self.TransferNodes()
+            self.transfer_nodes()
         else:
-            self.TransferSections()
+            self.transfer_sections()
