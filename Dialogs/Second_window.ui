@@ -29,7 +29,7 @@
    <string>Fields Mapping</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources.qrc">
+   <iconset>
     <normaloff>:/Icons/Logo</normaloff>:/Icons/Logo</iconset>
   </property>
   <widget class="QDialogButtonBox" name="button_box">
@@ -63,7 +63,7 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QPushButton" name="Dodaj">
+  <widget class="QPushButton" name="addBtn">
    <property name="geometry">
     <rect>
      <x>310</x>
@@ -89,7 +89,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap resource="resources.qrc">:/Icons/Logo</pixmap>
+    <pixmap>:/Icons/Logo</pixmap>
    </property>
   </widget>
   <widget class="QFrame" name="frame">
@@ -143,7 +143,7 @@
      <string>WinCan Fields</string>
     </property>
    </widget>
-   <widget class="QLabel" name="Dostepne_pola">
+   <widget class="QLabel" name="availableFieldsLabel">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -254,7 +254,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QPushButton" name="Usun">
+  <widget class="QPushButton" name="removeBtn">
    <property name="geometry">
     <rect>
      <x>310</x>
@@ -269,11 +269,14 @@
   </widget>
   <zorder>frame</zorder>
   <zorder>button_box</zorder>
-  <zorder>Dodaj</zorder>
+  <zorder>addBtn</zorder>
   <zorder>Logo</zorder>
   <zorder>frame_2</zorder>
-  <zorder>Usun</zorder>
+  <zorder>removeBtn</zorder>
  </widget>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>button_box</sender>
