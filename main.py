@@ -24,7 +24,6 @@ import CDLAB.WinCan.MQ
 import CDLAB.WinCan.SDK.GIS.UI
 import CDLAB.WinCan.Template
 
-
 class Plugin_main:
     def __init__(self, _qgis):
         SynchronizationContext.SetSynchronizationContext(SynchronizationContext())
