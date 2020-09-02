@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import Qmapping_tableItem, QDialogButtonBox
+from PyQt5.QtWidgets import QTableWidgetItem, QDialogButtonBox
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSize, QVariant
 
@@ -27,8 +27,8 @@ class Mapping(Second_window):
     def add_row(self):
         if (self.wincan_fields_list.currentItem() is not None) and (self.layer_fields_list.currentItem() is not None):
             self.mapping_table.insertRow(0)
-            self.mapping_table.setItem(0, 0, Qmapping_tableItem(self.wincan_fields_list.currentItem().text()))
-            self.mapping_table.setItem(0, 1, Qmapping_tableItem(self.layer_fields_list.currentItem().text()))
+            self.mapping_table.setItem(0, 0, QTableWidgetItem(self.wincan_fields_list.currentItem().text()))
+            self.mapping_table.setItem(0, 1, QTableWidgetItem(self.layer_fields_list.currentItem().text()))
             self.wincan_fields_list.takeItem(self.wincan_fields_list.currentRow())
             self.layer_fields_list.takeItem(self.layer_fields_list.currentRow())
             
@@ -39,17 +39,21 @@ class Mapping(Second_window):
             self.mapping_table.removeRow(self.mapping_table.currentRow())
             
     def open(self, fields):
+        self.mapped_fields = dict()
+        self.fill_lists_with_field_names(fields)
+        if self.exec_():
+            self.save_mapping_info()
+            return True
+            
+    def fill_lists_with_field_names(self, fields):
+        self.wincan_fields_list.clear()
+        self.layer_fields_list.clear()
         for field in self.parent.drawing.get_qgis_fields(self.source):
             self.wincan_fields_list.addItem(field.name())
-        self.layer_fields_list.clear()
         self.mapping_table.clearContents()
         self.mapping_table.setRowCount(0)
         for field in fields:
             self.layer_fields_list.addItem(field.name())
-            
-        if self.exec_():
-            self.save_mapping_info()
-            return True
             
     def get_mapping_fields(self):
         if self.type_selector.currentText() == self.main.tr("Section"):

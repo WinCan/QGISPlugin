@@ -181,7 +181,7 @@ class Drawing(QObject):
                     ["OBJ_PK"], SectionLayer.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % section.Id)
                 features = SectionLayer.getFeatures(request)
                 for f in features:
-                    for value in self.VX.connection.LayerFieldsPovider.SectionShapeFields:
+                    for value in self.VX.LayerFieldsPovider.SectionShapeFields:
                         attr = SectionLayer.fields().indexFromName(str(value.Key))
                         SectionLayer.changeAttributeValue(
                             f.id(), attr, str(section.GetValue(value)))

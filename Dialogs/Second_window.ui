@@ -29,7 +29,7 @@
    <string>Fields Mapping</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="../resources.qrc">
     <normaloff>:/Icons/Logo</normaloff>:/Icons/Logo</iconset>
   </property>
   <widget class="QDialogButtonBox" name="button_box">
@@ -89,7 +89,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap>:/Icons/Logo</pixmap>
+    <pixmap resource="../resources.qrc">:/Icons/Logo</pixmap>
    </property>
   </widget>
   <widget class="QFrame" name="frame">
@@ -110,7 +110,7 @@
    <property name="lineWidth">
     <number>1</number>
    </property>
-   <widget class="QListWidget" name="listWidget">
+   <widget class="QListWidget" name="wincan_fields_list">
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -120,7 +120,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QListWidget" name="listWidget_2">
+   <widget class="QListWidget" name="layer_fields_list">
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -130,7 +130,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QLabel" name="Pola_WinCan">
+   <widget class="QLabel" name="wincan_fields">
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -143,7 +143,7 @@
      <string>WinCan Fields</string>
     </property>
    </widget>
-   <widget class="QLabel" name="availableFieldsLabel">
+   <widget class="QLabel" name="available_fields">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -156,7 +156,7 @@
      <string>Available Fields</string>
     </property>
    </widget>
-   <widget class="QLabel" name="Pola_warstwy">
+   <widget class="QLabel" name="layer_fields">
     <property name="geometry">
      <rect>
       <x>240</x>
@@ -170,7 +170,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QFrame" name="frame_2">
+  <widget class="QFrame" name="field_mapping">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -188,7 +188,7 @@
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
-   <widget class="QTableWidget" name="tableWidget">
+   <widget class="QTableWidget" name="mapping_table">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -214,7 +214,7 @@
      </property>
     </column>
    </widget>
-   <widget class="QLabel" name="Dostepne_pola_2">
+   <widget class="QLabel" name="field_mapping_lbl">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -227,7 +227,7 @@
      <string>Field Mapping</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="comboBox">
+   <widget class="QComboBox" name="type_selector">
     <property name="geometry">
      <rect>
       <x>70</x>
@@ -240,7 +240,7 @@
      <enum>Qt::ActionsContextMenu</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="type_lbl">
     <property name="geometry">
      <rect>
       <x>26</x>
@@ -271,11 +271,11 @@
   <zorder>button_box</zorder>
   <zorder>addBtn</zorder>
   <zorder>Logo</zorder>
-  <zorder>frame_2</zorder>
+  <zorder>field_mapping</zorder>
   <zorder>removeBtn</zorder>
  </widget>
  <resources>
-  <include location="resources.qrc"/>
+  <include location="../resources.qrc"/>
  </resources>
  <connections>
   <connection>
