@@ -1,6 +1,6 @@
 Plugin depends on a following stuff:
 - pythonnet
-- WinCan VX used to be installed on system
+- WinCan VX should be installed on system
 
 ___
 ***Install pythonnet on QGIS***
