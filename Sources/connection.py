@@ -78,7 +78,7 @@ class Connection():
         return self.connected
 
     def is_project(self):
-        result = self.connection.Project is None
+        result = type(self.connection.Project) != type(None)
         if result:
             self.Project = self.connection.Project
         return result
