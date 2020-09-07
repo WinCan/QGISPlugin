@@ -13,8 +13,7 @@ from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsFields, QgsField, Qgs
 from .resources import *
 from .Sources.connection import Connection
 from .Sources.transfer import Transfer
-from .Dialogs.VX_integration_dialog import VXDialog
-from .Dialogs.Second_window_dialog import Second_window
+from .Dialogs.Window import Window
 
 import ZeroMQ
 from CDLAB.WinCan.SDK.GIS import ConnectedApplicationType
@@ -31,7 +30,7 @@ class Plugin_main:
         self.menu = self.tr(u'&WinCan VX integration')
         self.set_translator()        
         self.VX = Connection(self, self.qgis)
-        self.main_window = VXDialog()
+        self.main_window = Window('VX_integration_dialog_base.ui')
         self.transfer = Transfer(self, self.VX.connection, self.qgis)
         
         self.main_window.connect_button.clicked.connect(self.connect_pushed)
@@ -144,17 +143,12 @@ class Plugin_main:
                 enabled_flag=False,
                 parent=self.qgis.mainWindow())
 
-        self.first_start = True
-
     def unload(self):
         for action in self.actions:
             self.qgis.removePluginMenu(
                 self.tr(u'&WinCan VX integration'),
                 action)
         del self.toolbar
-
-        if self.first_start != True:
-            pass
 
     def update_project_label(self, project=None):
         if type(project) != type(None):

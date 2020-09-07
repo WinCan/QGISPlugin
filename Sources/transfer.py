@@ -37,8 +37,7 @@ class Transfer:
         return QCoreApplication.translate('TransferToWinCan', message)
 
     def is_wincan_layer(self):
-        if self.layer.name() in self.drawing.wincan_layers:
-            return True
+        return self.layer.name() in self.drawing.wincan_layers
 
     def check_conditions(self):
         self.count, self.selected_shapes, self.layer = self.drawing.get_selected()

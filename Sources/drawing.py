@@ -73,19 +73,18 @@ class Drawing(QObject):
             
         if data.IsEmpty:
             return
-        else:
-            if data.Nodes.Count > 0:
-                self.draw_Nodes(data.Nodes)
-            if data.Sections.Count > 0:
-                self.draw_Sections(data.Sections)
-            if data.Observations.Count > 0:
-                self.draw_Observations(data.Observations)
-            if data.NodeInspections.Count > 0:
-                self.draw_NodeInspections(data.NodeInspections)
-            if data.NodeObservations.Count > 0:
-                self.draw_NodeObservations(data.NodeObservations)
-            if data.Inspections.Count > 0:
-                self.draw_Inspections(data.Inspections)
+        if data.Nodes.Count > 0:
+            self.draw_Nodes(data.Nodes)
+        if data.Sections.Count > 0:
+            self.draw_Sections(data.Sections)
+        if data.Observations.Count > 0:
+            self.draw_Observations(data.Observations)
+        if data.NodeInspections.Count > 0:
+            self.draw_NodeInspections(data.NodeInspections)
+        if data.NodeObservations.Count > 0:
+            self.draw_NodeObservations(data.NodeObservations)
+        if data.Inspections.Count > 0:
+            self.draw_Inspections(data.Inspections)
                 
         canvas = self.qgis.mapCanvas()
         canvas.zoomToFullExtent()
@@ -134,11 +133,8 @@ class Drawing(QObject):
         count = 0
         selected_shapes = []
         layer = self.qgis.activeLayer()
-        if type(layer) is not type(None):
-            for feature in layer.selectedFeatures():
-                count += 1
-                selected_shapes.append(feature)
-        return count, selected_shapes, layer
+        if layer is not None:
+            return len(layer.selectedFeatures()), layer.selectedFeatures(), layer
     
     def draw_Inspections(self, Inspections):
         QCoreApplication.processEvents()
@@ -147,109 +143,65 @@ class Drawing(QObject):
         InspectionLayer.startEditing()
         prov = InspectionLayer.dataProvider()
         for ins in Inspections:
-            points = []
             feature = QgsFeature()
             feature.setFields(self.fields[0])
-            for point in ins.Vertices:
-                points.append(QgsPointXY(point.X, point.Y))
+            points = [QgsPointXY(point.X, point.Y) for point in ins.Vertices]
             feature.setGeometry(QgsGeometry.fromPolylineXY(points))
-            self.add_values(
+            self.add_attributes_to_feature(
                 feature, ins, self.VX.LayerFieldsPovider.InspectionShapeFields)
             inspections.append(feature)
-
-        prov.addFeatures(inspections)
-        InspectionLayer.updateExtents()
-        InspectionLayer.commitChanges()
-        QCoreApplication.processEvents()
+        self.draw_and_save(inspections, prov, InspectionLayer)
 
     def draw_Sections(self, Sections):
         QCoreApplication.processEvents()
         nr = 1
         sections = []
         SectionLayer = self.created_layers[1]
-        SectionLayer.startEditing()
-        prov = SectionLayer.dataProvider()
+        prov = self.start_editing(SectionLayer)
         points = []
 
         if SectionLayer == None:
             return
-
         for section in Sections:
-
             if section.ExternalItemId != 0:
-                request = QgsFeatureRequest().setSubsetOfAttributes(
-                    ["OBJ_PK"], SectionLayer.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % section.Id)
-                features = SectionLayer.getFeatures(request)
-                for f in features:
-                    for value in self.VX.LayerFieldsPovider.SectionShapeFields:
-                        attr = SectionLayer.fields().indexFromName(str(value.Key))
-                        SectionLayer.changeAttributeValue(
-                            f.id(), attr, str(section.GetValue(value)))
+                self.update_attributes(section, SectionLayer, self.VX.LayerFieldsPovider.SectionShapeFields)
             else:
-                points = []
                 feature = QgsFeature()
                 feature.setFields(self.fields[1])
-                for point in section.Vertices:
-                    points.append(QgsPointXY(point.X, point.Y))
+                points = [QgsPointXY(point.X, point.Y) for point in section.Vertices]
                 feature.setGeometry(QgsGeometry.fromPolylineXY(points))
-                self.add_values(
+                self.add_attributes_to_feature(
                     feature, section, self.VX.LayerFieldsPovider.SectionShapeFields)
                 sections.append(feature)
                 section.ExternalItemId = nr
                 nr += 1
-
-        if points != []:
-            prov.addFeatures(sections)
-            SectionLayer.loadNamedStyle(
-                self.plugin_dir + '\\Styles\\style_section.qml')
-
-        SectionLayer.updateExtents()
-        SectionLayer.commitChanges()
-        QCoreApplication.processEvents()
+        self.draw_and_save(sections, prov, SectionLayer, '\\Styles\\style_section.qml')
 
     def draw_Nodes(self, Nodes):
         QCoreApplication.processEvents()
         nr = 1
         points = []
         NodeLayer = self.created_layers[2]
-        NodeLayer.startEditing()
-        prov = NodeLayer.dataProvider()
+        prov = self.start_editing(NodeLayer)
 
         if NodeLayer == None:
             return
-
         for node in Nodes:
-
             if node.ExternalItemId != 0:
-                request = QgsFeatureRequest().setSubsetOfAttributes(
-                    ["OBJ_PK"], NodeLayer.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % node.Id)
-                features = NodeLayer.getFeatures(request)
-                for f in features:
-                    for value in self.VX.LayerFieldsPovider.NodeShapeFields:
-                        attr = NodeLayer.fields().indexFromName(str(value.Key))
-                        NodeLayer.changeAttributeValue(
-                            f.id(), attr, str(node.GetValue(value)))
+                self.update_attributes(node, NodeLayer, self.VX.LayerFieldsPovider.NodeShapeFields)
             else:
                 point = node.Centroid
                 feature = QgsFeature()
                 feature.setFields(self.fields[2])
-                if (type(point) != type(None)):
+                if point is not None:
                     layerPoint = QgsPointXY(point.X, point.Y)
                     feature.setGeometry(QgsGeometry.fromPointXY(layerPoint))
-                self.add_values(
+                self.add_attributes_to_feature(
                     feature, node, self.VX.LayerFieldsPovider.NodeShapeFields)
                 points.append(feature)
                 node.ExternalItemId = nr
                 nr += 1
-
-        if points != []:
-            prov.addFeatures(points)
-            NodeLayer.loadNamedStyle(
-                self.plugin_dir + '\\Styles\\style_node.qml')
-
-        NodeLayer.updateExtents()
-        NodeLayer.commitChanges()
-        QCoreApplication.processEvents()
+        self.draw_and_save(points, prov, NodeLayer, '\\Styles\\style_node.qml')
 
     def draw_NodeInspections(self, NodeInspections):
         QCoreApplication.processEvents()
@@ -261,17 +213,12 @@ class Drawing(QObject):
             points = []
             feature = QgsFeature()
             feature.setFields(self.fields[3])
-            for point in Nodeins.Vertices:
-                points.append(QgsPointXY(point.X, point.Y))
+            points = [QgsPointXY(point.X, point.Y) for point in Nodeins.Vertices]
             feature.setGeometry(QgsGeometry.fromPolylineXY(points))
-            self.add_values(
+            self.add_attributes_to_feature(
                 feature, Nodeins, self.VX.LayerFieldsPovider.NodeInspectionShapeFields)
             nodeinspection.append(feature)
-
-        prov.addFeatures(nodeinspection)
-        NodeInspectionLayer.updateExtents()
-        NodeInspectionLayer.commitChanges()
-        QCoreApplication.processEvents()
+        self.draw_and_save(nodeinspection, prov, NodeInspectionLayer)
 
     def draw_NodeObservations(self, NodeObservation):
         QCoreApplication.processEvents()
@@ -285,17 +232,10 @@ class Drawing(QObject):
                 feature.setFields(self.fields[4])
                 layerPoint = QgsPointXY(point.X, point.Y)
                 feature.setGeometry(QgsGeometry.fromPointXY(layerPoint))
-                self.add_values(
+                self.add_attributes_to_feature(
                     feature, Nodeobs, self.VX.LayerFieldsPovider.NodeObservationShapeFields)
                 points.append(feature)
-
-        prov.addFeatures(points)
-
-        NodeObservationLayer.loadNamedStyle(
-            self.plugin_dir + '\\Styles\\style_NodeObs.qml')
-        NodeObservationLayer.updateExtents()
-        NodeObservationLayer.commitChanges()
-        QCoreApplication.processEvents()
+        self.draw_and_save(points, prov, NodeObservationLayer, '\\Styles\\style_NodeObs.qml')
 
     def draw_Observations(self, Observations):
         QCoreApplication.processEvents()
@@ -309,19 +249,46 @@ class Drawing(QObject):
                 feature.setFields(self.fields[5])
                 layerPoint = QgsPointXY(point.X, point.Y)
                 feature.setGeometry(QgsGeometry.fromPointXY(layerPoint))
-                self.add_values(
+                self.add_attributes_to_feature(
                     feature, obs, self.VX.LayerFieldsPovider.ObservationShapeFields)
                 points.append(feature)
+        self.draw_and_save(points, prov, ObservationLayer, '\\Styles\\style_obs.qml')
 
-        prov.addFeatures(points)
-
-        ObservationLayer.loadNamedStyle(
-            self.plugin_dir + '\\Styles\\style_obs.qml')
-        ObservationLayer.updateExtents()
-        ObservationLayer.commitChanges()
+    def start_editing(self, layer):
+        layer.startEditing()
+        return layer.dataProvider()
+    
+    def draw_and_save(self, pts, prov, layer, location=None):
+        if pts != []:
+            prov.addFeatures(pts)
+            if location is not None:
+                layer.loadNamedStyle(self.plugin_dir + location)
+        self.update_layer(layer)
         QCoreApplication.processEvents()
-
-    def add_values(self, feature, entity, shapefields):
+        
+    def update_layer(self, layer):
+        layer.updateExtents()
+        layer.commitChanges()
+        
+    def update_attributes(self, element, layer, fields):
+        request = QgsFeatureRequest().setSubsetOfAttributes(
+            ["OBJ_PK"], layer.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % element.Id)
+        features = layer.getFeatures(request)
+        for f in features:
+            for value in fields:
+                attr = layer.fields().indexFromName(str(value.Key))
+                layer.changeAttributeValue(
+                    f.id(), attr, str(element.GetValue(value)))
+                
+    def write_file(self, path, fields, epsg, wkb_type):
+        QgsVectorFileWriter(path,
+                            "UTF-8",
+                            self.get_qgis_fields(fields),
+                            wkb_type,
+                            epsg,
+                            "ESRI Shapefile")
+        
+    def add_attributes_to_feature(self, feature, entity, shapefields):
         for attribute in feature.fields():
             for value in shapefields:
                 attr = feature.fieldNameIndex(value.Key)
@@ -357,20 +324,11 @@ class Drawing(QObject):
         for layer in self.wincan_layers:
             layer_full_path = layers_path + "\\" + layer + ".shp"
             self.fields.append(self.get_qgis_fields(ShapeFields[nr]))
-            if (layer == node_layer_name or layer == node_observation_layer_name or layer == observation_layer_name):
-                QgsVectorFileWriter(layer_full_path,
-                                    "UTF-8",
-                                    self.get_qgis_fields(ShapeFields[nr]),
-                                    QgsWkbTypes.Point,
-                                    EPSG,
-                                    "ESRI Shapefile")
-            if (layer == inspection_layer_name or layer == node_nspection_layer_name or layer == section_layer_name):
-                QgsVectorFileWriter(layer_full_path,
-                                    "UTF-8",
-                                    self.get_qgis_fields(ShapeFields[nr]),
-                                    QgsWkbTypes.LineString,
-                                    EPSG,
-                                    "ESRI Shapefile")
+            if layer in [node_layer_name, node_observation_layer_name, observation_layer_name]:
+                wkb_type = QgsWkbTypes.Point
+            else:
+                wkb_type = QgsWkbTypes.LineString
+            self.write_file(layer_full_path, ShapeFields[nr], EPSG, wkb_type)
             temp = QgsVectorLayer(layer_full_path, layer, 'ogr')
             self.created_layers.append(temp)
             nr += 1
@@ -382,14 +340,12 @@ class Drawing(QObject):
     def delete_features(self, to_delete, feature_class):
         if feature_class is None:
             return
-        else:
-            feature_class.startEditing()
-            for entity in to_delete:
-                request = QgsFeatureRequest().setSubsetOfAttributes(["OBJ_PK"], feature_class.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % entity.Id)
-                for f in feature_class.getFeatures(request):
-                    feature_class.deleteFeature(f.id())
-            feature_class.updateExtents()
-            feature_class.commitChanges()
+        feature_class.startEditing()
+        for entity in to_delete:
+            request = QgsFeatureRequest().setSubsetOfAttributes(["OBJ_PK"], feature_class.fields()).setFilterExpression('"OBJ_PK"=\'%s\'' % entity.Id)
+            for f in feature_class.getFeatures(request):
+                feature_class.deleteFeature(f.id())
+        self.update_layer(feature_class)
         
     def get_coordinate_system(self):
         return self.VX.Project.CoordinateSystem
@@ -404,15 +360,14 @@ class Drawing(QObject):
     def to_QGIS_type(self, VXType):
         if VXType == 0:
             return QVariant.Int
-        elif VXType == 1:
+        if VXType == 1:
             return QVariant.Double
-        elif VXType == 2:
+        if VXType == 2:
             return QVariant.String
-        elif VXType == 3:
+        if VXType == 3:
             return QVariant.String
-        elif VXType == 4:
+        if VXType == 4:
             return QVariant.String
-        elif VXType == 5:
+        if VXType == 5:
             return QVariant.Bool
-        else:
-            return QVariant.String
+        return QVariant.String

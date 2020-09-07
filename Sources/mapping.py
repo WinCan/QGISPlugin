@@ -4,11 +4,11 @@ from PyQt5.QtCore import QSize, QVariant
 
 from qgis.core import QgsFields, QgsField
 
-from ..Dialogs.Second_window_dialog import Second_window
+from ..Dialogs.Window import Window
 
-class Mapping(Second_window):
+class Mapping(Window):
     def __init__(self, _parent, _VX):
-        super(Mapping, self).__init__()
+        super(Mapping, self).__init__('Mapping_window.ui')
         self.VX_connection = _VX
         self.parent = _parent
         self.main = self.parent.parent
@@ -44,6 +44,7 @@ class Mapping(Second_window):
         if self.exec_():
             self.save_mapping_info()
             return True
+        return False
             
     def fill_lists_with_field_names(self, fields):
         self.wincan_fields_list.clear()

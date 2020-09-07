@@ -37,10 +37,7 @@ class Connection():
 
     def is_VX_enabled(self):
         processes = subprocess.Popen('tasklist', stdout=subprocess.PIPE).communicate()[0]
-        if b'WinCanVX.exe' in processes:
-            return True
-        else:
-            return False
+        return b'WinCanVX.exe' in processes
 
     def stop_connection(self):
         if self.connection.IsConnected:
@@ -55,21 +52,21 @@ class Connection():
         self.start_comunication()
 
     def connect_with_VX(self):
-        conection_timeout = 0
-        while not self.connection.IsConnected and conection_timeout < 10:
+        connection_retry_cnt = 0
+        while not self.connection.IsConnected and connection_retry_cnt < 10:
             self.start_connection()
             time.sleep(1)
-            conection_timeout += 1
-        if conection_timeout == 10 and not self.connection.IsConnected:
-            self.parent.show_error(self.parent.tr("Timeout - Connection error after 10 sec. Please make sure that WinCan VX is started."))
+            connection_retry_cnt += 1
+        if connection_retry_cnt == 10 and not self.connection.IsConnected:
+            self.parent.show_error(self.parent.tr("Timeout - Connection error after 10 attempts. Please make sure that WinCan VX is started."))
 
     def look_for_project(self):
-        project_receive_timeout = 0
-        while not self.is_project() and project_receive_timeout < 10:
-            time.sleep(1)
+        project_receive_cnt = 0
+        while not self.is_project() and project_receive_cnt < 10:
             self.start_connection()
-            project_receive_timeout += 1
-        if project_receive_timeout == 10 and not self.is_project():
+            time.sleep(1)
+            project_receive_cnt += 1
+        if project_receive_cnt == 10 and not self.is_project():
             self.parent.show_warning(self.parent.tr("Project is not available! Load project in VX and try again."))
 
     def start_comunication(self):
@@ -81,7 +78,7 @@ class Connection():
         return self.connected
 
     def is_project(self):
-        result = type(self.connection.Project) != type(None)
+        result = self.connection.Project is None
         if result:
             self.Project = self.connection.Project
         return result
