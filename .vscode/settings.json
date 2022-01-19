@@ -1,0 +1,7 @@
+{
+    "python.pythonPath": "c:\\OSGeo4W\\apps\\Python37\\python.exe",
+    "python.linting.pylintEnabled": true,
+    "cSpell.enableFiletypes": [
+        "!python"
+    ]
+}
