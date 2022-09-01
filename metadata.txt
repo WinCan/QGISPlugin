@@ -2,7 +2,7 @@
 name=WinCan VX Integration
 qgisMinimumVersion=3.0
 description=Download data from WinCan VX
-version=0.93
+version=0.94
 author=WinCan
 email=p.paziewski@wincan.com
 
@@ -12,9 +12,10 @@ tracker=https://github.com/WinCan/QGISPlugin/issues
 repository=https://github.com/WinCan/QGISPlugin
 
 changelog= 
+	v0.94
+		- Metadata fixed
 	v0.93
 		- Connectivity with WinCan 11 fixed
-changelog= 
 	v0.92
 		- Refactoring of connection, Compatibility with WinCan VX v.9.1+
 	v 0.91 

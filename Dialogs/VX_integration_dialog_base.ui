@@ -32,7 +32,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>WinCan VX integration - v0.91</string>
+   <string>WinCan VX integration - v0.94</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
